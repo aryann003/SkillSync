@@ -12,4 +12,12 @@ urlpatterns = [
     path('update/<int:id>/', update_post),
 
     path('delete/<int:id>/', delete_post),
+
+    path('like/<int:id>/', like_post),
+
+    path('unlike/<int:id>/', unlike_post),
+
+    path('comment/<int:id>/', add_comment),
+
+    path('comments/<int:id>/', post_comments),
 ]
