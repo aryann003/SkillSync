@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('users.urls')),
     path('api/posts/', include('posts.urls')),
+    path('api/connections/', include('connections.urls')),
 ]
 
 urlpatterns += static(
