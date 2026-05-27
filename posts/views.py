@@ -135,34 +135,61 @@ def delete_post(request, id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 
-def like_post(request, id):
+# def like_post(request, id):
 
+#     try:
+#         post = Post.objects.get(id=id)
+#     except Post.DoesNotExist:
+
+#         return Response({
+#             "error": "Post not found"
+#         }, status=status.HTTP_404_NOT_FOUND)
+    
+#     like, created = Like.objects.get_or_created(
+#         user = request.user,
+#         post = post
+#     )
+
+#     if not created:
+
+#         return Response({
+#             "message": "Post already liked"
+#         })
+#     serializer = LikeSerializer(like)
+
+#     return Response({
+#         "message": "Post liked successfully",
+#         "data": serializer.data
+#     }, status=status.HTTP_201_CREATED)
+    
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def like_post(request, id):
     try:
         post = Post.objects.get(id=id)
-    except Post.DoesNotExist:
 
+    except Post.DoesNotExist:
         return Response({
             "error": "Post not found"
         }, status=status.HTTP_404_NOT_FOUND)
-    
-    like, created = Like.objects.get_or_created(
-        user = request.user,
-        post = post
+
+    like, created = Like.objects.get_or_create(
+        user=request.user,
+        post=post
     )
 
     if not created:
-
         return Response({
             "message": "Post already liked"
-        })
+        }, status=status.HTTP_200_OK)
+
     serializer = LikeSerializer(like)
 
     return Response({
         "message": "Post liked successfully",
         "data": serializer.data
     }, status=status.HTTP_201_CREATED)
-    
-
 
 
 @api_view(['DELETE'])

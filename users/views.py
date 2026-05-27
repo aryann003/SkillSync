@@ -1,21 +1,18 @@
-import django
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
+from django.db.models import Q
+
 from .serializers import RegisterSerializer, ProfileSerializer
 from .models import Profile
 
-from django.db.models import Q
-from django.contrib.auth.models import User
 
-
- 
 @api_view(['GET'])
 def test(request):
     return Response({
-        "message": "skillSync API working"
+        "message": "SkillSync API working"
     })
 
 
@@ -35,15 +32,21 @@ def register(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile(request):
-    profile = Profile.objects.get(user=request.user)
+    profile, created = Profile.objects.get_or_create(
+        user=request.user
+    )
+
     serializer = ProfileSerializer(profile)
+
     return Response(serializer.data)
 
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
-    profile = Profile.objects.get(user=request.user)
+    profile, created = Profile.objects.get_or_create(
+        user=request.user
+    )
 
     serializer = ProfileSerializer(
         profile,
@@ -58,10 +61,8 @@ def update_profile(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-#search users by username, skills, interests, profession
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-
 def search_users(request):
 
     query = request.GET.get('q', '').strip()
@@ -72,55 +73,44 @@ def search_users(request):
         }, status=status.HTTP_400_BAD_REQUEST)
 
     profiles = Profile.objects.filter(
-        Q(user_username_icontains=query) |
-        Q(bio_icontains=query) |
-        Q(interests_icontains=query) |
-        Q(profession_icontains=query)|
-        Q(skills_icontains=query)
-    ).exclude(user = request.user)
-
+        Q(user__username__icontains=query) |
+        Q(bio__icontains=query) |
+        Q(interests__icontains=query) |
+        Q(profession__icontains=query) |
+        Q(skills__icontains=query)
+    ).exclude(user=request.user).distinct()
 
     serializer = ProfileSerializer(
         profiles,
-        many = True
+        many=True
     )
 
     return Response(serializer.data)
 
 
-#recommendation 
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-
 def recommended_users(request):
 
-    try:
-        my_profile = profile.objects.get(user=request.user)
+    my_profile, created = Profile.objects.get_or_create(
+        user=request.user
+    )
 
-    except Profile.DoesNotExist:
+    if not my_profile.interests and not my_profile.skills and not my_profile.profession:
         return Response({
-            "error": "Profile not found"
-        },status = status.HTTP_404_NOT_Found)
-    
-    interests = my_profile.interests
-
-    if not interests:
-        return Response({
-            "message" : "Add interests to your profile",
-            "data" : []
-
+            "message": "Add interests, skills, or profession to your profile",
+            "data": []
         })
-    
-    recommended = Profile.objects.filters(
-        Q(interests_icontains=interests) |
-        Q(skills_icontains=my_profile.skills) |
-        Q(profession_icontains=my_profile.profession)
-    ).exclude(user=request.user)
 
+    recommended = Profile.objects.filter(
+        Q(interests__icontains=my_profile.interests) |
+        Q(skills__icontains=my_profile.skills) |
+        Q(profession__icontains=my_profile.profession)
+    ).exclude(user=request.user).distinct()
 
     serializer = ProfileSerializer(
         recommended,
-        many = True
+        many=True
     )
+
     return Response(serializer.data)

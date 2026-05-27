@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+  <head>
+    <title>SkillSync</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>SkillSync</h1>
+    <p class="subtitle">
+      Connect with people sharing similar learning journeys
+    </p>
+
+    <div class="container">
+      <div class="card">
+        <h2>Register</h2>
+        <input type="text" id="regUsername" placeholder="Username" />
+        <input type="email" id="regEmail" placeholder="Email" />
+        <input type="password" id="regPassword" placeholder="Password" />
+        <button onclick="registerUser()">Register</button>
+      </div>
+
+      <div class="card">
+        <h2>Login</h2>
+        <input type="text" id="loginUsername" placeholder="Username" />
+        <input type="password" id="loginPassword" placeholder="Password" />
+        <button onclick="loginUser()">Login</button>
+      </div>
+
+      <div class="card">
+        <h2>Create Post</h2>
+        <input type="text" id="postTitle" placeholder="Post title" />
+        <textarea id="postContent" placeholder="Post content"></textarea>
+        <button onclick="createPost()">Create Post</button>
+      </div>
+
+      <div class="card">
+        <h2>Search Users</h2>
+        <input
+          type="text"
+          id="searchQuery"
+          placeholder="Search by skill or interest"
+        />
+        <button onclick="searchUsers()">Search</button>
+      </div>
+
+      <div class="card">
+        <h2>Create Community</h2>
+        <input type="text" id="communityName" placeholder="Community name" />
+        <textarea
+          id="communityDescription"
+          placeholder="Community description"
+        ></textarea>
+        <button onclick="createCommunity()">Create Community</button>
+      </div>
+
+      <div class="card">
+        <h2>Response</h2>
+        <pre id="responseBox">API response will appear here...</pre>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
