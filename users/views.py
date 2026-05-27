@@ -64,7 +64,12 @@ def update_profile(request):
 
 def search_users(request):
 
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
+
+    if not query:
+        return Response({
+            "error": "Search query is required"
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     profiles = Profile.objects.filter(
         Q(user_username_icontains=query) |

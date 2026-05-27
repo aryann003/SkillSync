@@ -16,9 +16,20 @@ from .serializers import (
 from django.db.models import Q
 from users.models import Profile
 
+
+
+#CREATE COMMUNITY
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_community(request):
+
+    name = request.data.get('name', '').strip()
+
+    if not name:
+        return Response({
+            "error": "Community name is required"
+        }, status = status.HTTP_400_BAD_REQUEST)
 
     serializer = CommunitySerializer(data=request.data)
     #this line sends data to serializer where serializer checks if data is valid
@@ -150,10 +161,24 @@ def community_members(request, id):
     return Response(serializer.data)
 
 
+#CREATE COMMUNITY POST
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_community_post(request, id):
+
+    title = request.data.get('title', '').strip()
+    content = request.data.get('content', '').strip()
+
+    if not title:
+        return Response({
+            "error": "Title is required"
+        }, status = status.HTTP_400_BAD_REQUEST)
+    
+    if not content:
+        return Response({
+            "error": "Content is required"
+        }, status = status.HTTP_400_BAD_REQUEST)
 
     try:
         community = Community.objects.get(id=id)
@@ -237,7 +262,12 @@ def delete_community_post(request, id):
 
 def search_communities(request):
 
-    query = request.GET.get('q', '')
+    query = request.GET.get('q', '').strip()
+
+    if not query:
+        return Response({
+            "error": "Search query is required"
+        }, status=status.HTTP_400_BAD_REQUEST)
 
     communities = Community.objects.filter(
         Q(name_icontains=query) |

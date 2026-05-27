@@ -14,6 +14,20 @@ from .serializers import PostSerializer, LikeSerializer, CommentSerializer
 @permission_classes([IsAuthenticated])
 
 def create_post(request):
+
+    title = request.data.get('title', '').strip()
+    content = request.data.get('content', '').strip()
+
+    if not title:
+        return Response({
+            "error": "Title is required"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    if not content:
+        return Response({
+            "error": "Content is required"
+        }, status = status.HTTP_400_BAD_REQUEST)
+
     serializer = PostSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -180,6 +194,13 @@ def unlike_post(request, id):
 
 def add_comment(request, id):
 
+
+    content = request.data.get('content', '').strip()
+
+    if not content:
+        return Response({
+            "error" : "comment content is required"
+        }, status=status.HTTP_400_BAD_REQUEST)
     try:
         post = Post.objects.get(id=id)
 
