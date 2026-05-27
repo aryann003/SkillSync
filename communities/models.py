@@ -13,7 +13,7 @@ class Community(models.Model):
         return self.name
 
 
-class CommunityMembership(models.Model):
+class CommunityMember(models.Model):
 
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE

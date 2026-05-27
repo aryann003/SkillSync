@@ -13,6 +13,9 @@ from .serializers import (
     CommunityPostSerializer
 )
 
+from django.db.models import Q
+from users.models import Profile
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def create_community(request):
@@ -224,3 +227,61 @@ def delete_community_post(request, id):
     return Response({
         "message": "Community post deleted successfully"
     }, status=status.HTTP_200_OK)
+
+
+
+#search communities by name or description
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def search_communities(request):
+
+    query = request.GET.get('q', '')
+
+    communities = Community.objects.filter(
+        Q(name_icontains=query) |
+        Q(description_icontains=query)
+    ).order_by('-created_at')
+
+    serializer = CommunitySerializer(
+        communities,
+        many= True
+    ) 
+
+    return Response(serializer.data)
+
+
+#recommendation
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def recommended_communities(request):
+
+    try:
+        profile = Profile.objects.get(user=request.user)
+
+    except Profile.DoesNotExist:
+        return Response({
+            "error": "Profile not found"
+        },status = status.HTTP_404_NOT_FOUND)
+    
+    query = profile.interests
+
+    if not query:
+        return Response({
+            "message" : "Add interests to your profile",
+            "data": []
+        })
+    
+    communities = Community.objects.filter(
+        Q(name_icontains=query) |
+        Q(description_icontains=query)
+    )
+
+    serializer = CommunitySerializer(
+        communities,
+        many=True
+    )
+    return Response(serializer.data)
