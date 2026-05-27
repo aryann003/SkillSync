@@ -10,7 +10,6 @@ class UserBasicSerializer(serializers.ModelSerializer):
         fields = [
             'id',
             'username',
-            'email'
         ]
 
 
@@ -21,7 +20,14 @@ class CommunitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Community
-        fields = '__all__'
+        fields = [
+            'id',
+            'name',
+            'description',
+            'created_by',
+            'created_at',
+            'member_count',
+        ]
 
         read_only_fields = [
             'created_at',
@@ -40,20 +46,44 @@ class CommunityMemberSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CommunityMember
-        fields = '__all__'
+        fields = [
+            'id',
+            'user',
+            'community',
+            'joined_at',
+        ]
         read_only_fields = [
             'joined_at',
-            'user'
+            'user',
+            'community',
         ]
 
 class CommunityPostSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    profile_image = serializers.SerializerMethodField()
 
     class Meta:
         model = CommunityPost
-        fields = '__all__'
+        fields = [
+            'id',
+            'user',
+            'username',
+            'profile_image',
+            'community',
+            'title',
+            'content',
+            'created_at',
+            'updated_at',
+        ]
         read_only_fields = [
             'user',
             'community',
             'created_at',
             'updated_at'
         ]
+
+    def get_profile_image(self, obj):
+        profile = getattr(obj.user, "profile", None)
+        if profile and profile.profile_image:
+            return profile.profile_image.url
+        return None

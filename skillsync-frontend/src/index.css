@@ -1,1 +1,15 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply min-h-screen bg-gradient-to-b from-slate-100 via-cyan-50 to-white text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100;
+}
+
+* {
+  @apply border-slate-200 dark:border-slate-800;
+}
+
+#root {
+  @apply min-h-screen;
+}

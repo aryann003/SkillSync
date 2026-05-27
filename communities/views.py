@@ -48,7 +48,7 @@ def create_community(request):
         return Response({
             'message': "Community created successfully",
             'data': serializer.data
-        }, status = status.HTTP_201_created)
+        }, status = status.HTTP_201_CREATED)
     
     return Response(
         serializer.errors,
@@ -270,8 +270,8 @@ def search_communities(request):
         }, status=status.HTTP_400_BAD_REQUEST)
 
     communities = Community.objects.filter(
-        Q(name_icontains=query) |
-        Q(description_icontains=query)
+        Q(name__icontains=query) |
+        Q(description__icontains=query)
     ).order_by('-created_at')
 
     serializer = CommunitySerializer(
@@ -306,8 +306,8 @@ def recommended_communities(request):
         })
     
     communities = Community.objects.filter(
-        Q(name_icontains=query) |
-        Q(description_icontains=query)
+        Q(name__icontains=query) |
+        Q(description__icontains=query)
     )
 
     serializer = CommunitySerializer(

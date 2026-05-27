@@ -16,7 +16,7 @@ from .serializers import FollowSerializer, UserBasicSerializer
 def follow_user(request, id):
 
     try:
-        user_to_follow = User.objects.get(id=user_id)
+        user_to_follow = User.objects.get(id=id)
 
     except User.DoesNotExist:
         return Response({
@@ -26,10 +26,10 @@ def follow_user(request, id):
     if request.user == user_to_follow:
         return Response({
             "error": "You cannot follow yourself"
-        }, status=status.HTTP_404_BAD_REQUEST)
+        }, status=status.HTTP_400_BAD_REQUEST)
     
 
-    follow, created = Follow.objects.get_or_created(
+    follow, created = Follow.objects.get_or_create(
         follower=request.user,
         following=user_to_follow
     )

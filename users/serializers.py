@@ -22,9 +22,20 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
 
     class Meta:
         model = Profile
-        fields = '__all__'
+        fields = [
+            'id',
+            'user',
+            'username',
+            'bio',
+            'skills',
+            'interests',
+            'profession',
+            'profile_image',
+            'created_at',
+        ]
         read_only_fields = ['user']
 

@@ -4,6 +4,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from django.db.models import Q
+from django.contrib.auth.models import User
 
 from .serializers import RegisterSerializer, ProfileSerializer
 from .models import Profile
@@ -47,6 +48,20 @@ def update_profile(request):
     profile, created = Profile.objects.get_or_create(
         user=request.user
     )
+
+    username = request.data.get('username')
+    if username is not None:
+        username = username.strip()
+        if len(username) < 3:
+            return Response({
+                "error": "Username must be at least 3 characters"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        if User.objects.filter(username=username).exclude(id=request.user.id).exists():
+            return Response({
+                "error": "Username already taken"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        request.user.username = username
+        request.user.save()
 
     serializer = ProfileSerializer(
         profile,
