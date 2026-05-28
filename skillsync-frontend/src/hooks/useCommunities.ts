@@ -9,8 +9,22 @@ export const useCommunities = (id?: number) => {
   const membersQuery = useQuery({ queryKey: ["community-members", id], queryFn: () => getCommunityMembers(id as number), enabled: !!id });
   const postsQuery = useQuery({ queryKey: ["community-posts", id], queryFn: () => getCommunityPosts(id as number), enabled: !!id });
   const createMutation = useMutation({ mutationFn: createCommunity, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["communities"] }) });
-  const joinMutation = useMutation({ mutationFn: joinCommunity, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["community-members", id] }) });
-  const leaveMutation = useMutation({ mutationFn: leaveCommunity, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["community-members", id] }) });
+  const joinMutation = useMutation({
+    mutationFn: joinCommunity,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
+      queryClient.invalidateQueries({ queryKey: ["community", id] });
+      queryClient.invalidateQueries({ queryKey: ["communities"] });
+    }
+  });
+  const leaveMutation = useMutation({
+    mutationFn: leaveCommunity,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["community-members", id] });
+      queryClient.invalidateQueries({ queryKey: ["community", id] });
+      queryClient.invalidateQueries({ queryKey: ["communities"] });
+    }
+  });
   const searchMutation = useMutation({ mutationFn: searchCommunities });
   const createPostMutation = useMutation({ mutationFn: ({ id: communityId, title, content }: { id: number; title: string; content: string }) => createCommunityPost(communityId, { title, content }), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["community-posts", id] }) });
   const deletePostMutation = useMutation({ mutationFn: deleteCommunityPost, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["community-posts", id] }) });

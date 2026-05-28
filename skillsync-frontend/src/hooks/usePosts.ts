@@ -1,21 +1,23 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addComment, createPost, deletePost, getComments, getPosts, likePost, unlikePost, updatePost } from "../api/posts";
-
-const PAGE_SIZE = 8;
+import { addComment, createPost, deletePost, getComments, getPosts, getSavedPosts, likePost, savePost, unlikePost, unsavePost, updatePost } from "../api/posts";
+import { authStore } from "../store/authStore";
 
 /** Manages feed posts, comments and optimistic post interactions. */
 export const usePosts = () => {
   const queryClient = useQueryClient();
+  const currentUserId = authStore((s) => s.user?.user ?? null);
 
   const postsQuery = useInfiniteQuery({
     queryKey: ["posts"],
-    initialPageParam: 0,
+    initialPageParam: 1,
     queryFn: async ({ pageParam }) => {
-      const all = await getPosts();
-      const start = pageParam * PAGE_SIZE;
-      return { items: all.slice(start, start + PAGE_SIZE), hasMore: start + PAGE_SIZE < all.length, page: pageParam };
+      const data = await getPosts(pageParam);
+      return {
+        items: data.results,
+        nextPage: data.next ? pageParam + 1 : undefined
+      };
     },
-    getNextPageParam: (lastPage) => (lastPage.hasMore ? lastPage.page + 1 : undefined),
+    getNextPageParam: (lastPage) => lastPage.nextPage,
     staleTime: 60_000
   });
 
@@ -23,8 +25,13 @@ export const usePosts = () => {
   const updateMutation = useMutation({ mutationFn: ({ id, data }: { id: number; data: { title?: string; content?: string } }) => updatePost(id, data), onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }) });
   const deleteMutation = useMutation({ mutationFn: deletePost, onSuccess: () => queryClient.invalidateQueries({ queryKey: ["posts"] }) });
   const likeMutation = useMutation({ mutationFn: ({ id, liked }: { id: number; liked: boolean }) => (liked ? unlikePost(id) : likePost(id)) });
+  const savedPostsQuery = useQuery({ queryKey: ["saved-posts", currentUserId], queryFn: getSavedPosts, staleTime: 60_000, enabled: currentUserId !== null });
+  const saveMutation = useMutation({
+    mutationFn: ({ id, saved }: { id: number; saved: boolean }) => (saved ? unsavePost(id) : savePost(id)),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["saved-posts", currentUserId] })
+  });
   const commentsQuery = (postId: number, enabled: boolean) => useQuery({ queryKey: ["comments", postId], queryFn: () => getComments(postId), enabled });
   const commentMutation = useMutation({ mutationFn: ({ id, content }: { id: number; content: string }) => addComment(id, content), onSuccess: (_d, vars) => queryClient.invalidateQueries({ queryKey: ["comments", vars.id] }) });
 
-  return { postsQuery, createMutation, updateMutation, deleteMutation, likeMutation, commentsQuery, commentMutation };
+  return { postsQuery, createMutation, updateMutation, deleteMutation, likeMutation, savedPostsQuery, saveMutation, commentsQuery, commentMutation };
 };

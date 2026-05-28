@@ -20,4 +20,8 @@ urlpatterns = [
     path('comment/<int:id>/', add_comment),
 
     path('comments/<int:id>/', post_comments),
+
+    path('save/<int:id>/', save_post),
+    path('unsave/<int:id>/', unsave_post),
+    path('saved/', saved_posts),
 ]

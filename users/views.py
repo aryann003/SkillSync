@@ -9,6 +9,13 @@ from django.contrib.auth.models import User
 from .serializers import RegisterSerializer, ProfileSerializer
 from .models import Profile
 
+from rest_framework.pagination import PageNumberPagination
+
+def _split_terms(value):
+    if not value:
+        return []
+    return [term.strip() for term in value.split(",") if term.strip()]
+
 
 @api_view(['GET'])
 def test(request):
@@ -95,12 +102,15 @@ def search_users(request):
         Q(skills__icontains=query)
     ).exclude(user=request.user).distinct()
 
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(profiles, request)
     serializer = ProfileSerializer(
-        profiles,
+        result_page,
         many=True
     )
 
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET'])
@@ -111,21 +121,34 @@ def recommended_users(request):
         user=request.user
     )
 
-    if not my_profile.interests and not my_profile.skills and not my_profile.profession:
+    interest_terms = _split_terms(my_profile.interests)
+    skill_terms = _split_terms(my_profile.skills)
+    profession_terms = _split_terms(my_profile.profession)
+
+    if not interest_terms and not skill_terms and not profession_terms:
         return Response({
             "message": "Add interests, skills, or profession to your profile",
             "data": []
         })
 
-    recommended = Profile.objects.filter(
-        Q(interests__icontains=my_profile.interests) |
-        Q(skills__icontains=my_profile.skills) |
-        Q(profession__icontains=my_profile.profession)
-    ).exclude(user=request.user).distinct()
+    query = Q()
+
+    for term in interest_terms:
+        query |= Q(interests__icontains=term)
+    for term in skill_terms:
+        query |= Q(skills__icontains=term)
+    for term in profession_terms:
+        query |= Q(profession__icontains=term)
+
+    recommended = Profile.objects.filter(query).exclude(user=request.user).distinct()
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(recommended, request)
 
     serializer = ProfileSerializer(
-        recommended,
+        result_page,
         many=True
     )
 
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)

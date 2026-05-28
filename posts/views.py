@@ -6,9 +6,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Post, Like, Comment
-from .serializers import PostSerializer, LikeSerializer, CommentSerializer
+from .models import Post, Like, Comment, SavedPost
+from .serializers import PostSerializer, LikeSerializer, CommentSerializer, SavedPostSerializer
 
+
+from rest_framework.pagination import PageNumberPagination
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -50,10 +52,12 @@ def create_post(request):
 def all_posts(request):
 
     posts = Post.objects.all().order_by('-created_at')
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(posts, request)
+    serializer = PostSerializer(result_page, many=True)
 
-    serializer = PostSerializer(posts, many=True)
-
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -63,10 +67,10 @@ def my_posts(request):
         user=request.user
     ).order_by('-created_at')
 
-    serializer = PostSerializer(
-        posts,
-        many=True
-    )
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(posts, request)
+    serializer = PostSerializer(result_page, many=True)
 
     return Response(serializer.data)
 
@@ -239,5 +243,73 @@ def post_comments(request, id):
         many=True
     )
 
+
+    return Response(serializer.data)
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_post(request, id):
+    try:
+        post = Post.objects.get(id=id)
+
+    except Post.DoesNotExist:
+        return Response({
+            "error": "Post not found"
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    saved_post, created = SavedPost.objects.get_or_create(
+        user=request.user,
+        post=post
+    )
+
+    if not created:
+        return Response({
+            "message": "Post already saved"
+        }, status=status.HTTP_200_OK)
+
+    serializer = SavedPostSerializer(saved_post)
+
+    return Response({
+        "message": "Post saved successfully",
+        "data": serializer.data
+    }, status=status.HTTP_201_CREATED)
+
+
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def unsave_post(request, id):
+    try:
+        saved_post = SavedPost.objects.get(
+            user=request.user,
+            post_id=id
+        )
+
+    except SavedPost.DoesNotExist:
+        return Response({
+            "error": "Saved post not found"
+        }, status=status.HTTP_404_NOT_FOUND)
+
+    saved_post.delete()
+
+    return Response({
+        "message": "Post removed from saved posts"
+    }, status=status.HTTP_200_OK)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def saved_posts(request):
+    saved = SavedPost.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    serializer = SavedPostSerializer(
+        saved,
+        many=True
+    )
 
     return Response(serializer.data)

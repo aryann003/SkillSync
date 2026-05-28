@@ -3,19 +3,33 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "../hooks/useAuth";
+import { useConnections } from "../hooks/useConnections";
 import Button from "../components/Button";
 import Avatar from "../components/Avatar";
 import { splitTags } from "../utils/formatters";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
+import { Link } from "react-router-dom";
+import { authStore } from "../store/authStore";
+import { useQuery } from "@tanstack/react-query";
+import { getFollowing } from "../api/connections";
 
 const schema = z.object({ username: z.string().min(3, "Username must be at least 3 characters"), bio: z.string().max(300), skills: z.string(), interests: z.string(), profession: z.string() });
 
 export default function ProfilePage() {
   const { profileQuery, updateProfileMutation } = useAuth();
   const profile = profileQuery.data;
+  const { followersQuery, followingQuery } = useConnections(profile?.user);
+  const { followMutation, unfollowMutation } = useConnections();
+  const currentUser = authStore((s) => s.user);
+  const myFollowingQuery = useQuery({
+    queryKey: ["following", currentUser?.user],
+    queryFn: () => getFollowing(currentUser?.user as number),
+    enabled: !!currentUser?.user
+  });
   const [editing, setEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
+  const [activeList, setActiveList] = useState<"followers" | "following" | null>(null);
 
   const previewUrl = useMemo(() => (profileImage ? URL.createObjectURL(profileImage) : null), [profileImage]);
 
@@ -46,7 +60,50 @@ export default function ProfilePage() {
         <div className="mt-3 flex flex-wrap gap-2">
           {splitTags(profile?.skills ?? "").slice(0, 5).map((skill) => <span key={skill} className="rounded-full bg-teal-100 px-2 py-0.5 text-xs text-teal-700 dark:bg-teal-900 dark:text-teal-200">{skill}</span>)}
         </div>
+        <div className="mt-4 flex gap-5 text-sm">
+          <button className="hover:underline" onClick={() => setActiveList("followers")}><span className="font-semibold">{followersQuery.data?.length ?? 0}</span> followers</button>
+          <button className="hover:underline" onClick={() => setActiveList("following")}><span className="font-semibold">{followingQuery.data?.length ?? 0}</span> following</button>
+        </div>
       </div>
+
+      {activeList && (
+        <div className="rounded-3xl border border-white/40 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/85">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-semibold">{activeList === "followers" ? "Followers" : "Following"}</h2>
+            <button className="text-sm text-slate-500 hover:underline" onClick={() => setActiveList(null)}>Close</button>
+          </div>
+          <div className="space-y-2">
+            {(activeList === "followers" ? followersQuery.data : followingQuery.data)?.length ? (activeList === "followers" ? followersQuery.data : followingQuery.data)?.map((item) => {
+              const person = activeList === "followers" ? item.follower : item.following;
+              const isMe = person.id === currentUser?.user;
+              const isFollowing = Boolean(myFollowingQuery.data?.some((followItem) => followItem.following.id === person.id));
+              return <div key={item.id} className="flex items-center justify-between rounded-xl border p-3"><Link to={`/profile/${person.id}`} className="font-medium hover:underline">@{person.username}</Link>{isMe ? <button disabled className="rounded-lg border px-3 py-1 text-xs opacity-60">You</button> : isFollowing ? <button className="rounded-lg border bg-slate-700 px-3 py-1 text-xs text-white" onClick={async () => {
+                try {
+                  await unfollowMutation.mutateAsync(person.id);
+                  await myFollowingQuery.refetch();
+                  await followersQuery.refetch();
+                  await followingQuery.refetch();
+                  toast.success(`Unfollowed @${person.username}`);
+                } catch (error) {
+                  const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+                  toast.error(axiosError.response?.data?.error || axiosError.response?.data?.message || "Could not unfollow user");
+                }
+              }}>Following</button> : <button className="rounded-lg border border-teal-500 px-3 py-1 text-xs text-teal-600" onClick={async () => {
+                try {
+                  await followMutation.mutateAsync(person.id);
+                  await myFollowingQuery.refetch();
+                  await followersQuery.refetch();
+                  await followingQuery.refetch();
+                  toast.success(`Now following @${person.username}`);
+                } catch (error) {
+                  const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+                  toast.error(axiosError.response?.data?.error || axiosError.response?.data?.message || "Could not follow user");
+                }
+              }}>Follow</button>}</div>;
+            }) : <p className="text-sm text-slate-500">No {activeList} yet.</p>}
+          </div>
+        </div>
+      )}
 
       {editing && (
         <div className="rounded-3xl border border-white/40 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/85">

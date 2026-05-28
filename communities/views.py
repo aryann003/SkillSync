@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
-
+from rest_framework.pagination import PageNumberPagination
 from .models import Community, CommunityMember, CommunityPost
 from .serializers import (
     CommunitySerializer,
@@ -62,13 +62,16 @@ def create_community(request):
 def list_communities(request):
 
     communities = Community.objects.all().order_by('-created_at')
-
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(communities, request)
     serializer = CommunitySerializer(
-        communities,
+        result_page,
+        context={'request': request},
         many=True
     )
 
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 
 @api_view(['GET'])
@@ -84,7 +87,10 @@ def community_details(request, id):
             "error": "Community not found"
         }, status = status.HTTP_404_NOT_FOUND)
     
-    serializer = CommunitySerializer(community)
+    serializer = CommunitySerializer(
+        community,
+        context={'request': request}
+    )
 
     return Response(serializer.data)
 
@@ -153,12 +159,15 @@ def community_members(request, id):
         community_id=id
     ).order_by('-joined_at')
 
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(members, request)
     serializer = CommunityMemberSerializer(
-        members,
+        result_page,
         many=True
     )
 
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 
 #CREATE COMMUNITY POST
@@ -225,12 +234,15 @@ def community_posts(request, id):
         community_id=id
     ).order_by('-created_at')
 
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(posts, request)
     serializer = CommunityPostSerializer(
-        posts,
+        result_page,
         many=True
     )
 
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
@@ -273,13 +285,16 @@ def search_communities(request):
         Q(name__icontains=query) |
         Q(description__icontains=query)
     ).order_by('-created_at')
-
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(communities, request)
     serializer = CommunitySerializer(
-        communities,
+        result_page,
+        context={'request': request},
         many= True
     ) 
 
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)
 
 
 #recommendation
@@ -309,9 +324,12 @@ def recommended_communities(request):
         Q(name__icontains=query) |
         Q(description__icontains=query)
     )
-
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+    result_page = paginator.paginate_queryset(communities, request)
     serializer = CommunitySerializer(
-        communities,
+        result_page,
+        context={'request': request},
         many=True
     )
-    return Response(serializer.data)
+    return paginator.get_paginated_response(serializer.data)

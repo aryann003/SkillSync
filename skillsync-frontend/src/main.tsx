@@ -13,6 +13,7 @@ import CommunitiesPage from "./pages/Communities";
 import CommunityDetailPage from "./pages/Community";
 import ExplorePage from "./pages/Explore";
 import NotificationsPage from "./pages/Notifications";
+import SavedPostsPage from "./pages/SavedPosts";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import AppLayout from "./pages/AppLayout";
 import PageErrorBoundary from "./components/PageErrorBoundary";
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
       { path: "/communities", element: <PageErrorBoundary><CommunitiesPage /></PageErrorBoundary> },
       { path: "/communities/:id", element: <PageErrorBoundary><CommunityDetailPage /></PageErrorBoundary> },
       { path: "/explore", element: <PageErrorBoundary><ExplorePage /></PageErrorBoundary> },
+      { path: "/saved-posts", element: <PageErrorBoundary><SavedPostsPage /></PageErrorBoundary> },
       { path: "/notifications", element: <PageErrorBoundary><NotificationsPage /></PageErrorBoundary> }
     ] }]
   },

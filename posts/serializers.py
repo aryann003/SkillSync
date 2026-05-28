@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Post, Like, Comment
+from .models import Post, Like, Comment,SavedPost
 
 class PostSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
@@ -75,3 +75,19 @@ class CommentSerializer(serializers.ModelSerializer):
         if profile and profile.profile_image:
             return profile.profile_image.url
         return None
+
+
+
+class SavedPostSerializer(serializers.ModelSerializer):
+    post= PostSerializer(read_only=True)
+
+    class Meta:
+
+        model = SavedPost
+        fields = [
+            'id',
+            'user',
+            'post',
+            'created_at',
+        ]
+        read_only_fields = ['user', 'post', 'created_at']

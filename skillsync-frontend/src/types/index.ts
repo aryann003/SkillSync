@@ -39,6 +39,13 @@ export interface Post {
   updated_at: string;
 }
 
+export interface SavedPost {
+  id: number;
+  user: number;
+  post: Post;
+  created_at: string;
+}
+
 export interface Comment {
   id: number;
   user: number;
@@ -56,6 +63,7 @@ export interface Community {
   created_by: number;
   created_at: string;
   member_count?: number;
+  is_member?: boolean;
 }
 
 export interface CommunityMember {

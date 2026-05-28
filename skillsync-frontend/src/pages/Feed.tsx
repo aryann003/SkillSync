@@ -20,11 +20,12 @@ const schema = z.object({
 });
 
 export default function FeedPage() {
-  const { postsQuery, createMutation, likeMutation, deleteMutation, updateMutation } = usePosts();
+  const { postsQuery, createMutation, likeMutation, savedPostsQuery, saveMutation, deleteMutation, updateMutation } = usePosts();
   const currentUser = authStore((s) => s.user);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
   const [likeCounts, setLikeCounts] = useState<Record<number, number>>({});
+  const [savedPosts, setSavedPosts] = useState<Record<number, boolean>>({});
   const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
   const [editTarget, setEditTarget] = useState<Post | null>(null);
   const [editTitle, setEditTitle] = useState("");
@@ -48,6 +49,11 @@ export default function FeedPage() {
     if (loaderRef.current) observer.observe(loaderRef.current);
     return () => observer.disconnect();
   }, [postsQuery]);
+
+  useEffect(() => {
+    const nextSaved = Object.fromEntries((savedPostsQuery.data ?? []).map((saved) => [saved.post.id, true]));
+    setSavedPosts(nextSaved);
+  }, [savedPostsQuery.data]);
 
   if (postsQuery.isLoading) return <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-36" />)}</div>;
 
@@ -88,7 +94,7 @@ export default function FeedPage() {
             <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{post.content}</p>
           </Card>
         ))
-      ) : items.length === 0 ? <p>No posts yet. Be the first to share!</p> : items.map((post) => <PostCard key={post.id} post={post} mine={currentUser?.user === post.user} liked={Boolean(likedPosts[post.id])} likesCount={likeCounts[post.id] ?? post.likes_count ?? 0} onLike={async () => {
+      ) : items.length === 0 ? <p>No posts yet. Be the first to share!</p> : items.map((post) => <PostCard key={post.id} post={post} mine={currentUser?.user === post.user} liked={Boolean(likedPosts[post.id])} saved={Boolean(savedPosts[post.id])} likesCount={likeCounts[post.id] ?? post.likes_count ?? 0} onLike={async () => {
         const previousLike = Boolean(likedPosts[post.id]);
         const previousCount = likeCounts[post.id] ?? post.likes_count ?? 0;
         setLikedPosts((prev) => ({ ...prev, [post.id]: !previousLike }));
@@ -99,6 +105,16 @@ export default function FeedPage() {
           setLikedPosts((prev) => ({ ...prev, [post.id]: previousLike }));
           setLikeCounts((prev) => ({ ...prev, [post.id]: previousCount }));
           toast.error("Could not update like");
+        }
+      }} onSave={async () => {
+        const previousSaved = Boolean(savedPosts[post.id]);
+        setSavedPosts((prev) => ({ ...prev, [post.id]: !previousSaved }));
+        try {
+          await saveMutation.mutateAsync({ id: post.id, saved: previousSaved });
+          toast.success(previousSaved ? "Post unsaved" : "Post saved");
+        } catch {
+          setSavedPosts((prev) => ({ ...prev, [post.id]: previousSaved }));
+          toast.error("Could not update saved post");
         }
       }} onDelete={() => setDeleteTarget(post)} onEdit={() => {
         setEditTarget(post);

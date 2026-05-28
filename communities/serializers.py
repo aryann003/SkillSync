@@ -17,6 +17,7 @@ class UserBasicSerializer(serializers.ModelSerializer):
 class CommunitySerializer(serializers.ModelSerializer):
 
     member_count = serializers.SerializerMethodField()
+    is_member = serializers.SerializerMethodField()
 
     class Meta:
         model = Community
@@ -27,6 +28,7 @@ class CommunitySerializer(serializers.ModelSerializer):
             'created_by',
             'created_at',
             'member_count',
+            'is_member',
         ]
 
         read_only_fields = [
@@ -38,6 +40,15 @@ class CommunitySerializer(serializers.ModelSerializer):
         return CommunityMember.objects.filter(
             community=obj
         ).count()
+
+    def get_is_member(self, obj):
+        request = self.context.get('request')
+        if not request or not request.user.is_authenticated:
+            return False
+        return CommunityMember.objects.filter(
+            user=request.user,
+            community=obj
+        ).exists()
     
 
 class CommunityMemberSerializer(serializers.ModelSerializer):
