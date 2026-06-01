@@ -8,6 +8,7 @@ from django.contrib.auth.models import User
 from .models import Follow
 from .serializers import FollowSerializer, UserBasicSerializer
 
+from notifications.models import Notification
 
 
 @api_view(['POST'])
@@ -36,8 +37,15 @@ def follow_user(request, id):
 
     if not created:
         return Response({
-            "error": "You are already following this user"
+            "message": "You are already following this user"
         })
+
+    Notification.objects.create(
+        user = user_to_follow,
+        sender = request.user,
+        notification_type = 'follow',
+        message = f"{request.user.username} started following you."
+    )
     
     serializer = FollowSerializer(follow)
 

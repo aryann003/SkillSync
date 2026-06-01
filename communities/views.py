@@ -15,7 +15,7 @@ from .serializers import (
 
 from django.db.models import Q
 from users.models import Profile
-
+from notifications.models import Notification
 
 
 #CREATE COMMUNITY
@@ -121,6 +121,14 @@ def join_community(request, id):
             "message": "You are already a member of this community"
         }, status = status.HTTP_400_BAD_REQUEST)
     
+
+    if community.created_by != request.user:
+        Notification.objects.create(
+            user = community.created_by,
+            sender = request.user,
+            notification_type = 'community_join',
+            message = f"{request.user.username} joined your community {community.name}"
+        )
     serializer = CommunityMemberSerializer(member)
 
     return Response({

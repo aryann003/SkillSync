@@ -12,6 +12,7 @@ class Post(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    image = models.ImageField(upload_to='post_images/',null = True, blank = True)
 
     def __str__(self):
         return self.title
@@ -37,6 +38,9 @@ class Like(models.Model):
         return f"{self.user.username} liked {self.post.title}"
 
 
+
+
+# for reply to comment a comment must be able to point to another comment
 class Comment(models.Model):
 
     user = models.ForeignKey(
@@ -49,10 +53,17 @@ class Comment(models.Model):
         on_delete= models.CASCADE
     )
 
+    parent = models.ForeignKey(
+        'self',
+        null=True,
+        blank=True,
+        on_delete = models.CASCADE,
+        related_name = 'replies'
+    )
 
     content = models.TextField()
-
     created_at = models.DateTimeField(auto_now_add =True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.username} commented on {self.post.title}"

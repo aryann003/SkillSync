@@ -1,11 +1,17 @@
 import client from "./client";
-import { Comment, Post, SavedPost } from "../types";
+import { Comment, CommunityPost, Post, SavedPost } from "../types";
 
 export interface PaginatedResponse<T> {
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
+}
+
+export interface ActivityFeedResponse {
+  message: string;
+  posts_from_followed_users: Post[];
+  posts_from_communities: CommunityPost[];
 }
 
 const normalizePaginated = <T>(data: unknown): PaginatedResponse<T> => {
@@ -30,9 +36,21 @@ const normalizePaginated = <T>(data: unknown): PaginatedResponse<T> => {
 /** Fetches all posts. */
 export const getPosts = async (page = 1): Promise<PaginatedResponse<Post>> => normalizePaginated<Post>((await client.get(`posts/?page=${page}`)).data);
 /** Creates a post. */
-export const createPost = async (payload: { title: string; content: string }): Promise<{ data: Post }> => (await client.post("posts/create/", payload)).data;
+export const createPost = async (payload: { title: string; content: string; image?: File | null }): Promise<{ data: Post }> => {
+  const formData = new FormData();
+  formData.append("title", payload.title);
+  formData.append("content", payload.content);
+  if (payload.image) formData.append("image", payload.image);
+  return (await client.post("posts/create/", formData)).data;
+};
 /** Updates a post by id. */
-export const updatePost = async (id: number, payload: Partial<Post>): Promise<{ data: Post }> => (await client.patch(`posts/update/${id}/`, payload)).data;
+export const updatePost = async (id: number, payload: { title?: string; content?: string; image?: File | null }): Promise<{ data: Post }> => {
+  const formData = new FormData();
+  if (typeof payload.title === "string") formData.append("title", payload.title);
+  if (typeof payload.content === "string") formData.append("content", payload.content);
+  if (payload.image) formData.append("image", payload.image);
+  return (await client.patch(`posts/update/${id}/`, formData)).data;
+};
 /** Deletes a post by id. */
 export const deletePost = async (id: number): Promise<{ message: string }> => (await client.delete(`posts/delete/${id}/`)).data;
 /** Likes a post by id. */
@@ -52,5 +70,15 @@ export const getSavedPosts = async (): Promise<SavedPost[]> => {
 };
 /** Gets comments for a post id. */
 export const getComments = async (id: number): Promise<Comment[]> => (await client.get(`posts/comments/${id}/`)).data;
-/** Adds comment to a post id. */
-export const addComment = async (id: number, content: string): Promise<{ data: Comment }> => (await client.post(`posts/comment/${id}/`, { content })).data;
+/** Adds comment/reply to a post id. */
+export const addComment = async (id: number, content: string, parent?: number): Promise<{ data: Comment }> => {
+  const payload: { content: string; parent?: number } = { content };
+  if (typeof parent === "number") payload.parent = parent;
+  return (await client.post(`posts/comment/${id}/`, payload)).data;
+};
+/** Updates a comment by comment id. */
+export const updateComment = async (id: number, content: string): Promise<{ data: Comment }> => (await client.patch(`posts/comment/update/${id}/`, { content })).data;
+/** Deletes a comment by comment id. */
+export const deleteComment = async (id: number): Promise<{ message: string }> => (await client.delete(`posts/comment/delete/${id}/`)).data;
+/** Gets activity feed with followed users and joined communities posts. */
+export const getActivityFeed = async (): Promise<ActivityFeedResponse> => (await client.get("posts/feed/")).data;

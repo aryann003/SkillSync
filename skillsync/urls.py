@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/posts/', include('posts.urls')),
     path('api/connections/', include('connections.urls')),
     path('api/communities/', include('communities.urls')),
+    path('api/notifications/',include('notifications.urls')),
 
     #frontend  routes
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

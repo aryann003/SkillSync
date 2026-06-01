@@ -5,13 +5,15 @@ import UserCard from "../components/UserCard";
 import CommunityCard from "../components/CommunityCard";
 import { Community, Profile } from "../types";
 import { followUser, getFollowing, unfollowUser } from "../api/connections";
-import { joinCommunity, leaveCommunity } from "../api/communities";
+import { joinCommunity } from "../api/communities";
 import { toast } from "sonner";
 import Skeleton from "../components/Skeleton";
 import { AxiosError } from "axios";
 import { authStore } from "../store/authStore";
+import { useNavigate } from "react-router-dom";
 
 export default function ExplorePage() {
+  const navigate = useNavigate();
   const currentUser = authStore((s) => s.user);
   const [q, setQ] = useState("");
   const [users, setUsers] = useState<Profile[]>([]);
@@ -29,7 +31,6 @@ export default function ExplorePage() {
   const followMutation = useMutation({ mutationFn: followUser });
   const unfollowMutation = useMutation({ mutationFn: unfollowUser });
   const joinMutation = useMutation({ mutationFn: joinCommunity });
-  const leaveMutation = useMutation({ mutationFn: leaveCommunity });
 
   const shownUsers = users.length ? users : recUsers.data ?? [];
   const shownCommunities = communities.length ? communities : recCommunities.data ?? [];
@@ -93,31 +94,23 @@ export default function ExplorePage() {
 
         <section className="space-y-2">
           <h2 className="text-lg font-semibold">Communities</h2>
-          {recCommunities.isLoading ? <Skeleton className="h-28" /> : shownCommunities.length === 0 ? <p className="rounded-xl border p-4 text-sm text-slate-500">No communities found.</p> : shownCommunities.map((community) => <CommunityCard key={community.id} community={community} joined={joined[community.id] ?? Boolean(community.is_member)} loading={joinMutation.isPending || leaveMutation.isPending} onToggle={async () => {
+          {recCommunities.isLoading ? <Skeleton className="h-28" /> : shownCommunities.length === 0 ? <p className="rounded-xl border p-4 text-sm text-slate-500">No communities found.</p> : shownCommunities.map((community) => <CommunityCard key={community.id} community={community} joined={joined[community.id] ?? Boolean(community.is_member)} loading={joinMutation.isPending} onToggle={async () => {
             const isJoined = joined[community.id] ?? Boolean(community.is_member);
+            if (isJoined) {
+              navigate(`/communities/${community.id}`);
+              return;
+            }
             try {
-              if (isJoined) {
-                await leaveMutation.mutateAsync(community.id);
-                setJoined((prev) => ({ ...prev, [community.id]: false }));
-                toast.success("Left community");
-              } else {
-                await joinMutation.mutateAsync(community.id);
-                setJoined((prev) => ({ ...prev, [community.id]: true }));
-                toast.success("Joined community");
-              }
+              await joinMutation.mutateAsync(community.id);
+              setJoined((prev) => ({ ...prev, [community.id]: true }));
+              toast.success("Joined community");
             } catch (error) {
               const axiosError = error as AxiosError<{ error?: string; message?: string }>;
               const message = axiosError.response?.data?.error || axiosError.response?.data?.message || "Action failed";
 
-              if (!isJoined && message.toLowerCase().includes("already a member")) {
+              if (message.toLowerCase().includes("already a member")) {
                 setJoined((prev) => ({ ...prev, [community.id]: true }));
                 toast.success("Already joined");
-                return;
-              }
-
-              if (isJoined && message.toLowerCase().includes("not a member")) {
-                setJoined((prev) => ({ ...prev, [community.id]: false }));
-                toast.success("Already left");
                 return;
               }
 

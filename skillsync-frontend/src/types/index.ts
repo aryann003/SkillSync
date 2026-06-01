@@ -31,9 +31,11 @@ export interface Post {
   user: number;
   username?: string;
   profile_image?: string | null;
+  image?: string | null;
   title: string;
   content: string;
   likes_count?: number;
+  is_liked?: boolean;
   comments_count?: number;
   created_at: string;
   updated_at: string;
@@ -52,8 +54,11 @@ export interface Comment {
   username?: string;
   profile_image?: string | null;
   post: number;
+  parent?: number | null;
   content: string;
   created_at: string;
+  updated_at?: string;
+  replies?: Comment[];
 }
 
 export interface Community {
@@ -76,6 +81,8 @@ export interface CommunityMember {
 export interface CommunityPost {
   id: number;
   user: number;
+  username?: string;
+  profile_image?: string | null;
   community: number;
   title: string;
   content: string;
@@ -87,5 +94,15 @@ export interface Connection {
   id: number;
   follower: User;
   following: User;
+  created_at: string;
+}
+
+export interface Notification {
+  id: number;
+  sender: number | null;
+  sender_name?: string;
+  notification_type: "follow" | "like" | "comment" | "community_join" | "message";
+  message: string;
+  is_read: boolean;
   created_at: string;
 }

@@ -12,6 +12,7 @@ export default function PostCard({ post, profile, mine, liked, saved, likesCount
   const [showComments, setShowComments] = useState(false);
   const shortContent = post.content.length > 160 && !expanded ? `${post.content.slice(0, 160)}...` : post.content;
   const displayName = post.username || profile?.username || `User ${post.user}`;
+  const commentsCount = post.comments_count ?? 0;
 
   return (
     <Card className="animate-in fade-in duration-300">
@@ -42,12 +43,13 @@ export default function PostCard({ post, profile, mine, liked, saved, likesCount
       <h3 className="text-lg font-semibold">{post.title}</h3>
       <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">{shortContent}</p>
       {post.content.length > 160 && <button className="mt-1 text-xs text-teal-500" onClick={() => setExpanded((v) => !v)}>{expanded ? "Show less" : "Read more"}</button>}
+      {post.image && <img src={post.image} alt={post.title} className="mt-3 max-h-96 w-full rounded-lg border object-cover" />}
       <div className="mt-3 flex gap-4 text-sm">
         <button className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition hover:-translate-y-0.5 hover:bg-slate-100 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:hover:bg-slate-800 dark:focus:ring-slate-700" onClick={onLike}><ThumbsUp size={16} className={liked ? "fill-teal-500 text-teal-500" : ""} /> {likesCount}</button>
         <button className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition hover:-translate-y-0.5 hover:bg-slate-100 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:hover:bg-slate-800 dark:focus:ring-slate-700" onClick={onSave}><Bookmark size={16} className={saved ? "fill-teal-500 text-teal-500" : ""} /> {saved ? "Saved" : "Save"}</button>
-        <button className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition hover:-translate-y-0.5 hover:bg-slate-100 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:hover:bg-slate-800 dark:focus:ring-slate-700" onClick={() => setShowComments((v) => !v)}><MessageSquare size={16} /> Comments</button>
+        <button className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 transition hover:-translate-y-0.5 hover:bg-slate-100 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-slate-300 dark:hover:bg-slate-800 dark:focus:ring-slate-700" onClick={() => setShowComments((v) => !v)}><MessageSquare size={16} /> {commentsCount}</button>
       </div>
-      {showComments && <CommentThread postId={post.id} />}
+      {showComments && <CommentThread postId={post.id} postOwnerId={post.user} />}
     </Card>
   );
 }
