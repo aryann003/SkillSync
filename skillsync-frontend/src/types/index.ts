@@ -106,3 +106,12 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
 }
+
+export interface DashboardStats {
+  total_posts: number;
+  total_followers: number;
+  total_following: number;
+  total_saved_posts: number;
+  total_communities_joined: number;
+  unread_notifications: number;
+}

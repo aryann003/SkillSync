@@ -2,14 +2,29 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.pagination import PageNumberPagination
 
 from django.db.models import Q
 from django.contrib.auth.models import User
 
-from .serializers import RegisterSerializer, ProfileSerializer
 from .models import Profile
+from .serializers import RegisterSerializer, ProfileSerializer
 
-from rest_framework.pagination import PageNumberPagination
+from posts.models import Post, SavedPost
+from posts.serializers import PostSerializer
+
+from connections.models import Follow
+
+from communities.models import Community, CommunityMember
+from communities.serializers import CommunitySerializer
+
+from notifications.models import Notification
+
+
+
+
+
+
 
 def _split_terms(value):
     if not value:
@@ -152,3 +167,104 @@ def recommended_users(request):
     )
 
     return paginator.get_paginated_response(serializer.data)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def dashboard(request):
+
+    total_posts = Post.objects.filter(
+        user = request.user
+    ).count()
+
+
+    total_followers = Follow.objects.filter(
+        following = request.user
+    ).count()
+
+    total_following  = Follow.objects.filter(
+        follower = request.user
+    ).count()
+
+    total_saved_posts = SavedPost.objects.filter(
+        user = request.user
+    ).count()
+
+    total_communities_joined = CommunityMember.objects.filter(
+        user = request.user
+    ).count()
+
+    unread_notifications = Notification.objects.filter(
+        user = request.user,
+        is_read = False
+    ).count()
+
+
+    return Response({
+        "total_posts": total_posts,
+        "total_followers": total_followers,
+        "total_following": total_following,
+        "total_saved_posts": total_saved_posts,
+        "total_communities_joined": total_communities_joined,
+        "unread_notifications": unread_notifications
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def global_search(request):
+    query = request.GET.get('q','').strip()
+
+    if not query:
+        return Response({
+            "error": "Search query is required"
+        }, status = status.HTTP_400_BAD_REQUEST)
+    
+
+    users = Profile.objects.filter(
+        Q(user__username__icontains=query) | 
+        Q(bio__icontains=query) |
+        Q(skills__icontains=query) |
+        Q(profession__icontains=query)
+    ).exclude(
+        user = request.user
+    ).distinct()[:5]
+
+
+    posts = Post.objects.filter(
+        Q(title__icontains = query) |
+        Q(content__icontains=query) |
+        Q(user__username__icontains=query)
+    ).order_by('-created_at')[:5]
+
+    communities = Community.objects.filter(
+        Q(name__icontains=query) |
+        Q(description__icontains=query)
+    ).distinct()[:5]    
+    
+
+    user_serializer = ProfileSerializer(
+        users,
+        many = True
+    )
+
+    post_serializer = PostSerializer(
+        posts,
+        many = True,
+        context = {"request": request}
+    )
+
+    community_serializer = CommunitySerializer(
+        communities,
+        many = True
+    )
+
+
+    return Response({
+        "query": query,
+        "users": user_serializer.data,
+        "posts": post_serializer.data,
+        "communities" : community_serializer.data
+    })

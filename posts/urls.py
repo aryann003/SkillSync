@@ -30,6 +30,7 @@ urlpatterns = [
 
     path('comment/update/<int:id>/',edit_comment),
     path('comment/delete/<int:id>/',delete_comment),
+    path('trending/', trending_posts),
 ]
 
 if settings.DEBUG:

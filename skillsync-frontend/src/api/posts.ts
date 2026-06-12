@@ -35,6 +35,8 @@ const normalizePaginated = <T>(data: unknown): PaginatedResponse<T> => {
 
 /** Fetches all posts. */
 export const getPosts = async (page = 1): Promise<PaginatedResponse<Post>> => normalizePaginated<Post>((await client.get(`posts/?page=${page}`)).data);
+/** Fetches trending posts. */
+export const getTrendingPosts = async (page = 1): Promise<PaginatedResponse<Post>> => normalizePaginated<Post>((await client.get(`posts/trending/?page=${page}`)).data);
 /** Creates a post. */
 export const createPost = async (payload: { title: string; content: string; image?: File | null }): Promise<{ data: Post }> => {
   const formData = new FormData();

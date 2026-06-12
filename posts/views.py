@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.db.models import Q
+from django.db.models import Q, Count
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -466,3 +466,35 @@ def delete_comment(request,id):
     return Response({
         "message": "Comment deleted successfully"
     }, status = status.HTTP_200_OK)
+
+
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+
+def trending_posts(request):
+#annotate means add temporary fields to the queryset based on some calculations. Here we are adding total_likes and total_comments fields to each post in the queryset, which count the number of likes and comments for each post respectively. Then we order the posts based on these annotated fields, prioritizing posts with more likes and comments.
+    posts = Post.objects.annotate(
+        total_likes = Count('like'),
+        total_comments = Count('comment')
+    ).order_by(
+        '-total_likes',
+        '-total_comments',
+        '-created_at'
+    )
+
+    paginator = PageNumberPagination()
+    paginator.page_size = 6
+
+    result_page = paginator.paginate_queryset(posts, request)
+    serializer = PostSerializer(
+        result_page,
+        many=True,
+        context={"request": request}
+    )
+
+    return paginator.get_paginated_response(serializer.data)
+
+
+

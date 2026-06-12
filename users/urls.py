@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import recommended_users, search_users, test, register,profile, update_profile
+from .views import*
 
 
 from rest_framework_simplejwt.views import(
@@ -18,4 +18,6 @@ urlpatterns = [
 
     path('search/users/',search_users),
     path('recommend/users/',recommended_users),
+    path('dashboard/', dashboard),
+    path('search/', global_search),
 ]

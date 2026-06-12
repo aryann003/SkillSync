@@ -14,6 +14,8 @@ import CommunityDetailPage from "./pages/Community";
 import ExplorePage from "./pages/Explore";
 import NotificationsPage from "./pages/Notifications";
 import SavedPostsPage from "./pages/SavedPosts";
+import DashboardPage from "./pages/Dashboard";
+import TrendingPostsPage from "./pages/TrendingPosts";
 import ProtectedRoute from "./pages/ProtectedRoute";
 import AppLayout from "./pages/AppLayout";
 import PageErrorBoundary from "./components/PageErrorBoundary";
@@ -41,7 +43,9 @@ const router = createBrowserRouter([
   {
     element: <ProtectedRoute />,
     children: [{ element: <AppLayout />, children: [
+      { path: "/dashboard", element: <PageErrorBoundary><DashboardPage /></PageErrorBoundary> },
       { path: "/", element: <PageErrorBoundary><FeedPage /></PageErrorBoundary> },
+      { path: "/trending", element: <PageErrorBoundary><TrendingPostsPage /></PageErrorBoundary> },
       { path: "/profile", element: <PageErrorBoundary><ProfilePage /></PageErrorBoundary> },
       { path: "/profile/:id", element: <PageErrorBoundary><UserProfilePage /></PageErrorBoundary> },
       { path: "/communities", element: <PageErrorBoundary><CommunitiesPage /></PageErrorBoundary> },
