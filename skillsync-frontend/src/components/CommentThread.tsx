@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { authStore } from "../store/authStore";
 import { Comment } from "../types";
+import ReportModal from "./ReportModal";
+import { reportComment } from "../api/reports";
 
 const schema = z.object({ content: z.string().trim().min(1, "Comment is required") });
 
@@ -21,6 +23,8 @@ export default function CommentThread({ postId, postOwnerId }: { postId: number;
   const [replyContent, setReplyContent] = useState("");
   const [pendingDeleteCommentId, setPendingDeleteCommentId] = useState<number | null>(null);
   const [openReplies, setOpenReplies] = useState<Record<number, boolean>>({});
+  const [reportingCommentId, setReportingCommentId] = useState<number | null>(null);
+  const [submittingReport, setSubmittingReport] = useState(false);
   const query = commentsQuery(postId, true);
   const { register, handleSubmit, reset, formState: { errors } } = useForm<z.infer<typeof schema>>({ resolver: zodResolver(schema) });
 
@@ -133,6 +137,15 @@ export default function CommentThread({ postId, postOwnerId }: { postId: number;
                 </button>
               )
             )}
+            {currentUser?.user !== comment.user && (
+              <button
+                type="button"
+                className="text-xs text-amber-500 hover:underline"
+                onClick={() => setReportingCommentId(comment.id)}
+              >
+                Report
+              </button>
+            )}
           </div>
         )}
         {replyingToId === comment.id && (
@@ -217,6 +230,30 @@ export default function CommentThread({ postId, postOwnerId }: { postId: number;
         </div>
         {errors.content && <p className="text-xs text-red-500">{errors.content.message}</p>}
       </form>
+      <ReportModal
+        open={reportingCommentId !== null}
+        title="Report comment"
+        busy={submittingReport}
+        onClose={() => setReportingCommentId(null)}
+        onSubmit={async (draft) => {
+          if (!reportingCommentId) return;
+          if (!draft.reason) {
+            toast.error("Reason is required");
+            return;
+          }
+          try {
+            setSubmittingReport(true);
+            await reportComment(reportingCommentId, draft);
+            toast.success("Comment reported");
+            setReportingCommentId(null);
+          } catch (error) {
+            const axiosError = error as AxiosError<{ error?: string; message?: string }>;
+            toast.error(axiosError.response?.data?.error || axiosError.response?.data?.message || "Could not report comment");
+          } finally {
+            setSubmittingReport(false);
+          }
+        }}
+      />
     </div>
   );
 }

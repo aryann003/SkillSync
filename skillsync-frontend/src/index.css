@@ -2,14 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+}
+
 body {
-  @apply min-h-screen bg-gradient-to-b from-slate-100 via-cyan-50 to-white text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-slate-100;
+  @apply min-h-screen bg-[#f7f1e8] text-slate-900 antialiased dark:bg-[#0d1626] dark:text-slate-100;
+}
+
+::selection {
+  @apply bg-teal-300 text-slate-950;
 }
 
 * {
-  @apply border-slate-200 dark:border-slate-800;
+  @apply border-slate-200/80 dark:border-[#22324a];
 }
 
 #root {
   @apply min-h-screen;
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-[#d9cdbd] bg-[#fffaf2] px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/15 dark:border-[#2a3a55] dark:bg-[#101c30] dark:text-slate-100 dark:focus:border-teal-400 dark:focus:ring-teal-400/15;
+  }
+
+  .soft-panel {
+    @apply border border-[#e1d5c6] bg-[#fffaf2] shadow-sm dark:border-[#263650] dark:bg-[#111d31];
+  }
+
+  .eyebrow {
+    @apply text-[11px] font-bold uppercase tracking-[0.22em] text-teal-700 dark:text-teal-300;
+  }
+
+  .accent-panel {
+    @apply border border-teal-700 bg-teal-700 text-white dark:border-teal-400 dark:bg-teal-400 dark:text-slate-950;
+  }
+
+  .warm-panel {
+    @apply border border-[#e7d8c2] bg-[#fdf4e6] dark:border-[#31415c] dark:bg-[#132238];
+  }
 }

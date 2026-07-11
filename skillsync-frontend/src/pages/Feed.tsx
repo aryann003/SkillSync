@@ -92,9 +92,36 @@ export default function FeedPage() {
   if (feedMode === "all" && communityFilter === 0 && postsQuery.isLoading) return <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-36" />)}</div>;
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <div className="mb-3 flex items-center gap-2">
+    <div className="space-y-5">
+      <Card className="overflow-hidden p-0">
+        <div className="border-b border-[#e1d5c6] bg-[#fdf4e6] p-5 dark:border-[#263650] dark:bg-[#132238]">
+          <p className="eyebrow">Feed</p>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-black tracking-tight">Share what you are learning</h1>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Post an update, note, or resource.</p>
+            </div>
+            <div className="flex rounded-2xl bg-[#f1ddc4] p-1 dark:bg-[#0d1626]">
+              <button
+                className={`rounded-xl px-3 py-1.5 text-sm font-bold transition ${feedMode === "all" ? "bg-teal-700 text-white shadow-sm dark:bg-teal-300 dark:text-slate-950" : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"}`}
+                onClick={() => setFeedMode("all")}
+              >
+                All posts
+              </button>
+              <button
+                className={`rounded-xl px-3 py-1.5 text-sm font-bold transition ${feedMode === "activity" ? "bg-teal-700 text-white shadow-sm dark:bg-teal-300 dark:text-slate-950" : "text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white"}`}
+                onClick={() => {
+                  setFeedMode("activity");
+                  setCommunityFilter(0);
+                }}
+              >
+                Activity
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="p-5">
+        <div className="mb-4 hidden items-center gap-2">
           <button
             className={`rounded-full border px-3 py-1 text-sm ${feedMode === "all" ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}
             onClick={() => setFeedMode("all")}
@@ -111,8 +138,7 @@ export default function FeedPage() {
             Activity
           </button>
         </div>
-        <h2 className="mb-3 text-lg font-semibold">Share what you are learning</h2>
-        <form className="space-y-2" onSubmit={handleSubmit(async (values) => {
+        <form className="space-y-3" onSubmit={handleSubmit(async (values) => {
           try {
             await createMutation.mutateAsync({ ...values, image: imageFile });
             toast.success("Post created");
@@ -123,13 +149,13 @@ export default function FeedPage() {
             toast.error("Could not create post");
           }
         })}>
-          <input className="w-full rounded-lg border bg-transparent p-2" placeholder="Post title" {...register("title")} />
-          {errors.title && <p className="text-xs text-red-500">{errors.title.message}</p>}
-          <textarea className="w-full rounded-lg border bg-transparent p-2" rows={4} placeholder="What did you practice today?" {...register("content")} />
-          {errors.content && <p className="text-xs text-red-500">{errors.content.message}</p>}
-          <div className="rounded-lg border border-dashed border-slate-400/60 p-3">
-            <label htmlFor="post-image" className="mb-2 block text-sm font-medium">
-              Add image
+          <input className="field" placeholder="Give it a title — e.g. Built my first auth flow" {...register("title")} />
+          {errors.title && <p className="text-xs text-rose-500">{errors.title.message}</p>}
+          <textarea className="field min-h-32 resize-none" rows={4} placeholder="What did you try, learn, break, or finally understand?" {...register("content")} />
+          {errors.content && <p className="text-xs text-rose-500">{errors.content.message}</p>}
+          <div className="rounded-2xl border border-dashed border-[#d8c9b7] bg-[#f7ead8] p-4 dark:border-[#30415d] dark:bg-[#17263d]">
+            <label htmlFor="post-image" className="mb-2 block text-sm font-bold">
+              Add an image snapshot
             </label>
             <input
               id="post-image"
@@ -151,23 +177,29 @@ export default function FeedPage() {
                 setImageFile(file);
               }}
             />
-            <p className="mt-2 text-xs text-slate-500">Maximum file size: 5 MB</p>
+            <p className="mt-2 text-xs text-slate-500">Optional, maximum file size: 5 MB.</p>
             {imagePreviewUrl ? (
-              <img src={imagePreviewUrl} alt="Selected preview" className="mt-3 max-h-56 w-full rounded-lg border object-cover" />
+              <img src={imagePreviewUrl} alt="Selected preview" className="mt-3 max-h-56 w-full rounded-2xl border object-cover" />
             ) : (
-              <div className="mt-3 rounded-lg border bg-slate-50/60 p-4 text-center text-xs text-slate-500 dark:bg-slate-900/40">
-                Image preview will appear here
+              <div className="mt-3 rounded-2xl border bg-[#fffaf2] p-4 text-center text-xs text-slate-500 dark:bg-[#111d31]">
+                Preview will appear here if you attach one
               </div>
             )}
           </div>
-          <Button disabled={isSubmitting || createMutation.isPending}>Publish post</Button>
+          <div className="flex justify-end">
+            <Button disabled={isSubmitting || createMutation.isPending}>Publish post</Button>
+          </div>
         </form>
+        </div>
       </Card>
       {feedMode === "all" && (
       <Card>
-        <div className="flex items-center gap-2">
-          <label className="text-sm font-medium">Community-specific posts</label>
-          <select value={communityFilter} onChange={(e) => setCommunityFilter(Number(e.target.value))} className="rounded-lg border bg-transparent px-2 py-1 text-sm">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-bold">Community-specific posts</p>
+            <p className="text-xs text-slate-500">Filter the feed when you want a narrower room.</p>
+          </div>
+          <select value={communityFilter} onChange={(e) => setCommunityFilter(Number(e.target.value))} className="field max-w-xs py-2">
             <option value={0}>All global posts</option>
             {(communitiesQuery.data ?? []).map((community) => <option value={community.id} key={community.id}>{community.name}</option>)}
           </select>

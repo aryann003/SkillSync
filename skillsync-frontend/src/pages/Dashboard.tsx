@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Activity, BellRing, Bookmark, Compass, RefreshCcw, Users } from "lucide-react";
 import Card from "../components/Card";
 import Button from "../components/Button";
 import Skeleton from "../components/Skeleton";
@@ -9,38 +8,38 @@ const statCards = [
   {
     key: "total_posts",
     label: "Posts published",
-    accent: "from-amber-400 via-orange-400 to-rose-400",
-    icon: Activity
+    accent: "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+    bar: "bg-amber-500"
   },
   {
     key: "total_followers",
     label: "Followers",
-    accent: "from-cyan-400 via-sky-400 to-blue-500",
-    icon: Users
+    accent: "bg-sky-100 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300",
+    bar: "bg-sky-500"
   },
   {
     key: "total_following",
     label: "Following",
-    accent: "from-emerald-400 via-teal-400 to-cyan-500",
-    icon: Compass
+    accent: "bg-teal-100 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300",
+    bar: "bg-teal-500"
   },
   {
     key: "total_saved_posts",
     label: "Saved posts",
-    accent: "from-fuchsia-400 via-pink-400 to-rose-500",
-    icon: Bookmark
+    accent: "bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300",
+    bar: "bg-rose-500"
   },
   {
     key: "total_communities_joined",
     label: "Communities joined",
-    accent: "from-lime-400 via-green-400 to-emerald-500",
-    icon: Users
+    accent: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+    bar: "bg-emerald-500"
   },
   {
     key: "unread_notifications",
     label: "Unread notifications",
-    accent: "from-violet-400 via-indigo-400 to-blue-500",
-    icon: BellRing
+    accent: "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300",
+    bar: "bg-indigo-500"
   }
 ] as const;
 
@@ -54,25 +53,20 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <Card className="overflow-hidden p-0">
-        <div className="relative bg-[radial-gradient(circle_at_top_left,_rgba(34,197,94,0.18),_transparent_32%),linear-gradient(135deg,_rgba(15,23,42,0.98),_rgba(8,47,73,0.95)_48%,_rgba(20,83,45,0.92))] px-6 py-8 text-white">
-          <div className="absolute inset-0 bg-[linear-gradient(120deg,transparent_0%,rgba(255,255,255,0.08)_48%,transparent_100%)]" />
-          <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="border-b border-[#e1d5c6] bg-[#fdf4e6] px-6 py-8 dark:border-[#263650] dark:bg-[#132238]">
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs uppercase tracking-[0.35em] text-cyan-200/80">Dashboard</p>
-              <h1 className="mt-3 text-3xl font-black tracking-tight md:text-4xl">See how your SkillSync world is growing.</h1>
-              <p className="mt-3 max-w-xl text-sm text-slate-200">
+              <p className="eyebrow">Dashboard</p>
+              <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 dark:text-white md:text-4xl">See how your SkillSync world is growing.</h1>
+              <p className="mt-3 max-w-xl text-sm text-slate-500 dark:text-slate-400">
                 Track your activity, social reach, saved ideas, and community presence from one place.
               </p>
             </div>
             <Button
-              className="bg-white/15 backdrop-blur hover:bg-white/20"
               disabled={dashboardQuery.isFetching}
               onClick={() => dashboardQuery.refetch()}
             >
-              <span className="inline-flex items-center gap-2">
-                <RefreshCcw size={16} className={dashboardQuery.isFetching ? "animate-spin" : ""} />
-                Refresh
-              </span>
+              {dashboardQuery.isFetching ? "Refreshing..." : "Refresh"}
             </Button>
           </div>
         </div>
@@ -98,9 +92,9 @@ export default function DashboardPage() {
       ) : (
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {statCards.map(({ key, label, accent, icon: Icon }) => (
+            {statCards.map(({ key, label, accent, bar }) => (
               <Card key={key} className="relative overflow-hidden">
-                <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${accent}`} />
+                <div className={`absolute inset-x-0 top-0 h-1 ${bar}`} />
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
@@ -108,8 +102,8 @@ export default function DashboardPage() {
                       {stats[key]}
                     </p>
                   </div>
-                  <div className={`rounded-2xl bg-gradient-to-br ${accent} p-3 text-white shadow-lg`}>
-                    <Icon size={22} />
+                  <div className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${accent}`}>
+                    {label.split(" ")[0]}
                   </div>
                 </div>
               </Card>

@@ -1,27 +1,106 @@
-import { Bell, Bookmark, ChartNoAxesCombined, Flame, Home, Search, Users, User } from "lucide-react";
-import { Link, NavLink } from "react-router-dom";
+import { Bell, Bookmark, ChartNoAxesCombined, Flag, Flame, Home, Search, Users, User } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Profile } from "../types";
 import Avatar from "./Avatar";
 import { useQuery } from "@tanstack/react-query";
 import { recommendedUsers } from "../api/search";
 import { getNotificationCount } from "../api/notifications";
+import { uiStore } from "../store/uiStore";
+import { authStore } from "../store/authStore";
+
+const navItems = [
+  { to: "/dashboard", label: "Dashboard", icon: ChartNoAxesCombined, hasBadge: false },
+  { to: "/", label: "Feed", icon: Home, hasBadge: false },
+  { to: "/trending", label: "Trending", icon: Flame, hasBadge: false },
+  { to: "/communities", label: "Communities", icon: Users, hasBadge: false },
+  { to: "/explore", label: "Explore", icon: Search, hasBadge: false },
+  { to: "/notifications", label: "Notifications", icon: Bell, hasBadge: true },
+  { to: "/reports", label: "My reports", icon: Flag, hasBadge: false },
+  { to: "/saved-posts", label: "Saved posts", icon: Bookmark, hasBadge: false },
+  { to: "/profile", label: "Profile", icon: User, hasBadge: false }
+] as const;
 
 export default function Sidebar({ profile }: { profile?: Profile | null }) {
   const recommended = useQuery({ queryKey: ["sidebar-recommended-users"], queryFn: recommendedUsers });
   const notificationCountQuery = useQuery({ queryKey: ["notifications", "count"], queryFn: getNotificationCount, staleTime: 30_000 });
+  const { theme, toggleTheme } = uiStore();
+  const logout = authStore((state) => state.logout);
+  const navigate = useNavigate();
   const unreadCount = notificationCountQuery.data?.unread_count ?? 0;
   const displayName = profile?.username || (profile?.user ? `User ${profile.user}` : "User");
 
   return (
     <>
-      <aside className="hidden w-72 shrink-0 space-y-4 lg:block">
-        <div className="rounded-2xl border border-white/40 bg-white/85 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/90"><div className="flex items-center gap-3"><Avatar name={displayName} src={profile?.profile_image} /><div><p className="font-semibold">{displayName}</p><p className="text-xs text-slate-500">Keep learning daily</p></div></div></div>
-        <nav className="rounded-2xl border border-white/40 bg-white/85 p-3 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/90"><ul className="space-y-2 text-sm"><li><NavLink to="/dashboard" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Dashboard</NavLink></li><li><NavLink to="/" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Feed</NavLink></li><li><NavLink to="/trending" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Trending</NavLink></li><li><NavLink to="/communities" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Communities</NavLink></li><li><NavLink to="/explore" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Explore</NavLink></li><li><NavLink to="/notifications" className={({ isActive }) => `flex items-center justify-between rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}><span>Notifications</span>{unreadCount > 0 ? <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-xs font-semibold text-white">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}</NavLink></li><li><NavLink to="/saved-posts" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Saved posts</NavLink></li><li><NavLink to="/profile" className={({ isActive }) => `block rounded-lg px-3 py-2 ${isActive ? "bg-teal-500 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Profile</NavLink></li></ul></nav>
-        <div className="rounded-2xl border border-white/40 bg-white/85 p-4 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
+      <aside className="sticky top-5 hidden h-[calc(100vh-2.5rem)] w-72 shrink-0 space-y-4 overflow-y-auto pr-1 lg:block">
+        <div className="soft-panel overflow-hidden rounded-2xl">
+          <div className="border-b border-teal-800 bg-teal-800 p-4 text-white dark:border-teal-300 dark:bg-teal-300 dark:text-slate-950">
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-teal-100 dark:text-teal-900">SkillSync</p>
+            <p className="mt-2 text-xl font-black tracking-tight">Skills, posts, and communities.</p>
+          </div>
+          <div className="p-4">
+            <div className="flex items-center gap-3">
+              <Avatar name={displayName} src={profile?.profile_image} />
+              <div className="min-w-0">
+                <p className="truncate font-bold">{displayName}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.profession || "Member"}</p>
+              </div>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                className="rounded-lg border border-[#d8c9b7] bg-[#f7ead8] px-3 py-2 text-xs font-semibold text-slate-800 transition hover:bg-[#f1ddc4] dark:border-[#30415d] dark:bg-[#17263d] dark:text-slate-100 dark:hover:bg-[#1e3150]"
+                onClick={toggleTheme}
+              >
+                {theme === "dark" ? "Light mode" : "Dark mode"}
+              </button>
+              <button
+                className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-100 dark:border-rose-800/70 dark:bg-rose-950/50 dark:text-rose-200"
+                onClick={() => {
+                  logout();
+                  navigate("/login", { replace: true });
+                }}
+              >
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+        <nav className="soft-panel rounded-2xl p-2">
+          <ul className="space-y-1 text-sm">
+            {navItems.map(({ to, label, icon: Icon, hasBadge }) => (
+              <li key={to}>
+                <NavLink
+                  to={to}
+                  end={to === "/"}
+                  className={({ isActive }) =>
+                    `flex items-center justify-between rounded-lg px-3 py-2.5 font-semibold transition ${
+                      isActive
+                        ? "bg-teal-700 text-white dark:bg-teal-300 dark:text-slate-950"
+                        : "text-slate-600 hover:bg-[#f7ead8] hover:text-slate-950 dark:text-slate-300 dark:hover:bg-[#17263d] dark:hover:text-white"
+                    }`
+                  }
+                >
+                  <span className="flex items-center gap-3">
+                    <Icon size={18} />
+                    {label}
+                  </span>
+                  {hasBadge && unreadCount > 0 ? (
+                    <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-xs font-bold text-white">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  ) : null}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className="soft-panel rounded-2xl p-4">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-sm font-semibold">Recommended users</p>
+            <div>
+              <p className="eyebrow">People</p>
+              <p className="text-sm font-bold">Recommended users</p>
+            </div>
             <button
-              className="rounded-lg border px-2 py-1 text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+              className="rounded-lg border bg-[#f7ead8] px-3 py-1 text-xs font-semibold transition hover:bg-[#f1ddc4] dark:bg-[#17263d] dark:hover:bg-[#1e3150]"
               onClick={() => recommended.refetch()}
               disabled={recommended.isFetching}
             >
@@ -41,9 +120,13 @@ export default function Sidebar({ profile }: { profile?: Profile | null }) {
           </div>}
         </div>
       </aside>
-      <nav className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-8 border-t bg-white p-2 dark:bg-slate-900 lg:hidden">
-        <Link to="/dashboard" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><ChartNoAxesCombined size={18} /></Link><Link to="/" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Home size={18} /></Link><Link to="/trending" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Flame size={18} /></Link><Link to="/explore" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Search size={18} /></Link><Link to="/communities" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Users size={18} /></Link><Link to="/notifications" className="relative mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Bell size={18} />{unreadCount > 0 ? <span className="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-semibold text-white">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}</Link><Link to="/profile" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><User size={18} /></Link>
-        <Link to="/saved-posts" className="mx-auto rounded-lg p-2 hover:bg-slate-100 dark:hover:bg-slate-800"><Bookmark size={18} /></Link>
+      <nav className="fixed bottom-3 left-3 right-3 z-40 grid grid-cols-9 rounded-2xl border border-[#e1d5c6] bg-[#fffaf2] p-2 shadow-lg dark:border-[#263650] dark:bg-[#111d31] lg:hidden">
+        {navItems.map(({ to, icon: Icon, hasBadge }) => (
+          <Link key={to} to={to} className="relative mx-auto rounded-lg p-2 text-slate-600 transition hover:bg-[#f7ead8] hover:text-slate-950 dark:text-slate-300 dark:hover:bg-[#17263d] dark:hover:text-white">
+            <Icon size={18} />
+            {hasBadge && unreadCount > 0 ? <span className="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[10px] font-bold text-white">{unreadCount > 99 ? "99+" : unreadCount}</span> : null}
+          </Link>
+        ))}
       </nav>
     </>
   );

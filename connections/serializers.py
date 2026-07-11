@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Follow
+from .models import Block, Follow
 
 
 class UserBasicSerializer(serializers.ModelSerializer):
@@ -24,4 +24,18 @@ class FollowSerializer(serializers.ModelSerializer):
             'follower',
             'following',
             'created_at'
+        ]
+
+
+class BlockSerializer(serializers.ModelSerializer):
+    blocker = UserBasicSerializer(read_only = True)
+    blocked = UserBasicSerializer(read_only = True)
+
+    class Meta:
+        model = Block
+        fields = [
+        'id',
+        'blocker',
+        'blocked',
+        'created_at'
         ]

@@ -17,6 +17,7 @@ import { usePosts } from "../hooks/usePosts";
 export default function ExplorePage() {
   const navigate = useNavigate();
   const currentUser = authStore((s) => s.user);
+  const currentUserId = typeof currentUser?.user === "number" ? currentUser.user : undefined;
   const [q, setQ] = useState("");
   const [searchResults, setSearchResults] = useState<GlobalSearchResult | null>(null);
   const [searching, setSearching] = useState(false);
@@ -30,9 +31,9 @@ export default function ExplorePage() {
   const recCommunities = useQuery({ queryKey: ["recommended-communities"], queryFn: recommendedCommunityIndex });
   const { likeMutation, savedPostsQuery, saveMutation } = usePosts();
   const myFollowingQuery = useQuery({
-    queryKey: ["following", currentUser?.user],
-    queryFn: () => getFollowing(currentUser?.user as number),
-    enabled: !!currentUser?.user
+    queryKey: ["following", currentUserId],
+    queryFn: () => getFollowing(currentUserId as number),
+    enabled: typeof currentUserId === "number"
   });
   const followMutation = useMutation({ mutationFn: followUser });
   const unfollowMutation = useMutation({ mutationFn: unfollowUser });
@@ -68,23 +69,24 @@ export default function ExplorePage() {
 
   return (
     <div className="space-y-5">
-      <div className="rounded-3xl border border-white/40 bg-white/80 p-5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/85">
-        <h1 className="text-3xl font-bold">Explore</h1>
+      <div className="soft-panel rounded-2xl p-5">
+        <p className="eyebrow">Discover</p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight">Explore</h1>
         <p className="mt-1 text-sm text-slate-500">Find mentors, posts, and communities that match your learning path.</p>
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            className="w-full rounded-xl border bg-transparent p-3"
+            className="field"
             placeholder="Search people, posts, and communities"
           />
-          <button className="rounded-xl border px-4 hover:bg-slate-100 dark:hover:bg-slate-800" onClick={async () => {
+          <button className="rounded-xl border bg-[#f7ead8] px-4 py-3 text-sm font-bold hover:bg-[#f1ddc4] dark:bg-[#17263d] dark:hover:bg-[#1e3150]" onClick={async () => {
             setQ("");
             setSearchResults(null);
             await Promise.all([recUsers.refetch(), recCommunities.refetch()]);
             toast.success("Showing recommendations");
           }}>Recommendations</button>
-          <button className="rounded-xl border px-4 hover:bg-slate-100 disabled:opacity-60 dark:hover:bg-slate-800" disabled={searching} onClick={async () => {
+          <button className="rounded-xl border border-teal-700 bg-teal-700 px-4 py-3 text-sm font-bold text-white hover:bg-teal-800 disabled:opacity-60 dark:border-teal-300 dark:bg-teal-300 dark:text-slate-950 dark:hover:bg-teal-200" disabled={searching} onClick={async () => {
             if (!q.trim()) {
               setSearchResults(null);
               await Promise.all([recUsers.refetch(), recCommunities.refetch()]);
@@ -105,7 +107,7 @@ export default function ExplorePage() {
       </div>
 
       {!showRecommendations && (
-        <div className="rounded-2xl border border-white/40 bg-white/70 px-4 py-3 text-sm text-slate-600 backdrop-blur dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-300">
+        <div className="rounded-2xl border border-[#e1d5c6] bg-[#fffaf2] px-4 py-3 text-sm text-slate-600 dark:border-[#263650] dark:bg-[#111d31] dark:text-slate-300">
           Showing results for <span className="font-semibold">"{searchResults?.query ?? q}"</span>
         </div>
       )}

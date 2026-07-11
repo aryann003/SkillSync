@@ -115,3 +115,15 @@ export interface DashboardStats {
   total_communities_joined: number;
   unread_notifications: number;
 }
+
+export interface Report {
+  id: number;
+  reported_by: number;
+  reported_by_username?: string;
+  post: number | null;
+  comment: number | null;
+  reason: string;
+  description: string;
+  status: string;
+  created_at: string;
+}

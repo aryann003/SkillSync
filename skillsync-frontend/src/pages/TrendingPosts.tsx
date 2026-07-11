@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Flame, RefreshCcw } from "lucide-react";
 import { toast } from "sonner";
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -81,25 +80,20 @@ export default function TrendingPostsPage() {
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden p-0">
-        <div className="relative bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.25),_transparent_26%),radial-gradient(circle_at_bottom_left,_rgba(244,63,94,0.18),_transparent_32%),linear-gradient(140deg,_rgba(69,26,3,0.98),_rgba(127,29,29,0.94)_45%,_rgba(23,37,84,0.96))] px-6 py-7 text-white">
+        <div className="border-b border-[#e1d5c6] bg-[#fdf4e6] px-6 py-7 dark:border-[#263650] dark:bg-[#132238]">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.25em] text-amber-100">
-                <Flame size={14} />
+              <div className="inline-flex rounded-lg border bg-amber-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-300">
                 Trending
               </div>
-              <h1 className="mt-4 text-3xl font-black tracking-tight md:text-4xl">Most active posts, ranked by likes and conversation.</h1>
-              <p className="mt-3 text-sm text-amber-50/90">See what the network is reacting to right now and jump into the busiest discussions.</p>
+              <h1 className="mt-4 text-3xl font-black tracking-tight text-slate-950 dark:text-white md:text-4xl">Most active posts, ranked by likes and conversation.</h1>
+              <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">See what the network is reacting to right now and jump into the busiest discussions.</p>
             </div>
             <Button
-              className="bg-white/15 backdrop-blur hover:bg-white/20"
               disabled={trendingQuery.isFetching}
               onClick={() => trendingQuery.refetch()}
             >
-              <span className="inline-flex items-center gap-2">
-                <RefreshCcw size={16} className={trendingQuery.isFetching ? "animate-spin" : ""} />
-                Refresh
-              </span>
+              {trendingQuery.isFetching ? "Refreshing..." : "Refresh"}
             </Button>
           </div>
         </div>
