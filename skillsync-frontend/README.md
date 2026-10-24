@@ -1,16 +1,29 @@
-# React + Vite
+# SkillSync Web Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React single-page app for the [SkillSync API](../README.md): feed, trending posts, explore, communities, notifications, saved posts, profiles, and a dashboard.
 
-Currently, two official plugins are available:
+**Stack:** React 18, TypeScript, Vite, Tailwind CSS, React Router, TanStack Query, Zustand, React Hook Form + Zod, Axios.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Run locally
 
-## React Compiler
+```bash
+cd skillsync-frontend
+cp .env.example .env        # set VITE_API_BASE_URL (default: http://127.0.0.1:8000/api/)
+npm ci
+npm run dev
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The API must be running (see the root README) and must allow this origin through `CORS_ALLOWED_ORIGINS`.
 
-## Expanding the ESLint configuration
+## Build
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+VITE_API_BASE_URL=https://your-api.example.com/api/ npm run build
+```
+
+`VITE_API_BASE_URL` is read at build time and must end with a trailing slash. The app uses browser routing, so the host must rewrite all paths to `index.html`.
+
+## Notes
+
+- Access and refresh tokens are handled by an Axios interceptor that refreshes on a 401 and retries queued requests.
+- Routes are protected by `ProtectedRoute`, and each page is wrapped in an error boundary.

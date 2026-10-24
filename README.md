@@ -1,7 +1,20 @@
 # SkillSync
 
-<<<<<<< HEAD
 [![CI](https://github.com/aryann003/SkillSync/actions/workflows/ci.yml/badge.svg)](https://github.com/aryann003/SkillSync/actions/workflows/ci.yml)
+
+## Live Demo
+
+| | |
+| --- | --- |
+| **Web app** | https://skillsync-app-flau.onrender.com |
+| **API docs (Swagger)** | https://skillsync-hhqr.onrender.com/api/docs/ |
+| **Demo login** | username `demo` / password `DemoPass123!` |
+
+The apps run on free hosting and sleep when idle, so the first request can take about a minute. The database is PostgreSQL on Neon. Uploaded images are not persisted across redeploys.
+
+The web client lives in [`skillsync-frontend/`](skillsync-frontend) (React, TypeScript, Vite, Tailwind, React Query).
+
+---
 
 SkillSync is a **Django REST Framework backend API** for a social learning platform where users can connect based on their skills, interests, and profession.
 
@@ -37,51 +50,12 @@ SkillSync allows users to:
 | Media Uploads   | Pillow, Django File Storage                                       |
 | API Testing     | Postman                                                           |
 | Deployment      | Render, Gunicorn, WhiteNoise, Docker                              |
-| Testing         | Pytest, pytest-django, coverage (89 tests, 87% on app code)       |
+| Testing         | Pytest, pytest-django, coverage (92 tests, 87% on app code)       |
 | CI              | GitHub Actions with a PostgreSQL service container                |
 | API Docs        | OpenAPI 3 via drf-spectacular (Swagger UI at `/api/docs/`)        |
 | CORS            | django-cors-headers                                               |
 | Version Control | Git, GitHub                                                       |
 
-=======
-SkillSync is a **Django REST Framework backend API** for a social learning platform where users can connect based on their skills, interests, and profession.
-
-The project focuses on backend API development using **Django**, **Django REST Framework**, **JWT authentication**, protected APIs, model relationships, search, recommendations, notifications, and moderation features.
-
----
-
-## Project Overview
-
-SkillSync allows users to:
-
-* Register and log in using JWT authentication
-* Create and update their profile
-* Add skills, interests, profession, bio, and profile image
-* Create, update, and delete posts
-* Like, unlike, comment, reply, save, and unsave posts
-* Follow, unfollow, block, and unblock users
-* Join communities and create community posts
-* Search users, posts, and communities
-* Get user and community recommendations
-* Receive notifications for follows, likes, comments, replies, and community joins
-* Report posts or comments for moderation
-
----
-
-## Tech Stack
-
-| Area            | Technology                                                        |
-| --------------- | ----------------------------------------------------------------- |
-| Backend         | Python, Django, Django REST Framework                             |
-| Authentication  | Simple JWT                                                        |
-| Database        | SQLite for local development, DATABASE_URL support for production |
-| Media Uploads   | Pillow, Django File Storage                                       |
-| API Testing     | Postman                                                           |
-| Deployment      | Render, Gunicorn, WhiteNoise                                      |
-| CORS            | django-cors-headers                                               |
-| Version Control | Git, GitHub                                                       |
-
->>>>>>> f1b83778aab1e580edcf19537ae5124afcbdfe59
 ---
 
 ## Main Apps
@@ -463,7 +437,6 @@ PAGE_SIZE = 6
 
 ---
 
-<<<<<<< HEAD
 ## Performance
 
 Feed endpoints originally ran one query per post for the author, profile, like count, comment count and `is_liked` (an N+1 pattern). Counts are now computed with subqueries in a single annotated queryset (`posts/queries.py`) and related users are loaded with `select_related`.
@@ -536,31 +509,6 @@ Windows PowerShell:
 venv\Scripts\activate
 ```
 
-=======
-## Local Setup
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/aryann003/SkillSync.git
-cd SkillSync
-```
-
-### 2. Create virtual environment
-
-```bash
-python -m venv venv
-```
-
-### 3. Activate virtual environment
-
-Windows PowerShell:
-
-```bash
-venv\Scripts\activate
-```
-
->>>>>>> f1b83778aab1e580edcf19537ae5124afcbdfe59
 ### 4. Install dependencies
 
 ```bash
@@ -646,13 +594,8 @@ For permanent media storage, Cloudinary, AWS S3, or a Render persistent disk can
 * Improve recommendation scoring
 * Add email verification
 * Add real-time notifications using WebSockets
-<<<<<<< HEAD
 * Redis caching for the trending endpoint
 * Background jobs (Celery) for notification delivery
-=======
-* Add unit tests for APIs
-* Add API documentation using Swagger or DRF Spectacular
->>>>>>> f1b83778aab1e580edcf19537ae5124afcbdfe59
 
 ---
 
