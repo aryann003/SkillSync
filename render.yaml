@@ -1,15 +1,12 @@
-databases:
-  - name: skillsync-db
-    databaseName: skillsync
-    user: skillsync
-
 services:
   - type: web
     name: skillsync-api
     runtime: python
+    plan: free
     branch: master
     buildCommand: bash build.sh
     startCommand: gunicorn skillsync.wsgi:application
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.13.5
@@ -18,8 +15,6 @@ services:
       - key: DEBUG
         value: "False"
       - key: DATABASE_URL
-        fromDatabase:
-          name: skillsync-db
-          property: connectionString
+        sync: false
       - key: CORS_ALLOW_ALL_ORIGINS
         value: "False"
