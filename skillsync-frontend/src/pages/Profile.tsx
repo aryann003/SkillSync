@@ -12,7 +12,7 @@ import { AxiosError } from "axios";
 import { Link } from "react-router-dom";
 import { authStore } from "../store/authStore";
 import { useQuery } from "@tanstack/react-query";
-import { getFollowing } from "../api/connections";
+import { getFollowing, readCachedConnections } from "../api/connections";
 
 const schema = z.object({ username: z.string().min(3, "Username must be at least 3 characters"), bio: z.string().max(300), skills: z.string(), interests: z.string(), profession: z.string() });
 
@@ -26,7 +26,10 @@ export default function ProfilePage() {
   const myFollowingQuery = useQuery({
     queryKey: ["following", currentUserId],
     queryFn: () => getFollowing(currentUserId as number),
-    enabled: typeof currentUserId === "number"
+    enabled: typeof currentUserId === "number",
+    staleTime: 60_000,
+    initialData: typeof currentUserId === "number" ? readCachedConnections("following", currentUserId)?.data : undefined,
+    initialDataUpdatedAt: typeof currentUserId === "number" ? readCachedConnections("following", currentUserId)?.updatedAt : undefined
   });
   const [editing, setEditing] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
@@ -81,9 +84,6 @@ export default function ProfilePage() {
               return <div key={item.id} className="flex items-center justify-between rounded-xl border p-3"><Link to={`/profile/${person.id}`} className="font-medium hover:underline">@{person.username}</Link>{isMe ? <button disabled className="rounded-lg border px-3 py-1 text-xs opacity-60">You</button> : isFollowing ? <button className="rounded-lg border bg-slate-700 px-3 py-1 text-xs text-white" onClick={async () => {
                 try {
                   await unfollowMutation.mutateAsync(person.id);
-                  await myFollowingQuery.refetch();
-                  await followersQuery.refetch();
-                  await followingQuery.refetch();
                   toast.success(`Unfollowed @${person.username}`);
                 } catch (error) {
                   const axiosError = error as AxiosError<{ error?: string; message?: string }>;
@@ -92,9 +92,6 @@ export default function ProfilePage() {
               }}>Following</button> : <button className="rounded-lg border border-teal-500 px-3 py-1 text-xs text-teal-600" onClick={async () => {
                 try {
                   await followMutation.mutateAsync(person.id);
-                  await myFollowingQuery.refetch();
-                  await followersQuery.refetch();
-                  await followingQuery.refetch();
                   toast.success(`Now following @${person.username}`);
                 } catch (error) {
                   const axiosError = error as AxiosError<{ error?: string; message?: string }>;

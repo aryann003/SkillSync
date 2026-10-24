@@ -4,7 +4,7 @@ import { globalSearch, recommendedCommunityIndex, recommendedUsers, type GlobalS
 import UserCard from "../components/UserCard";
 import CommunityCard from "../components/CommunityCard";
 import { Community, Post, Profile } from "../types";
-import { followUser, getFollowing, unfollowUser } from "../api/connections";
+import { useConnections } from "../hooks/useConnections";
 import { joinCommunity } from "../api/communities";
 import { toast } from "sonner";
 import Skeleton from "../components/Skeleton";
@@ -30,13 +30,7 @@ export default function ExplorePage() {
   const recUsers = useQuery({ queryKey: ["recommended-users"], queryFn: recommendedUsers });
   const recCommunities = useQuery({ queryKey: ["recommended-communities"], queryFn: recommendedCommunityIndex });
   const { likeMutation, savedPostsQuery, saveMutation } = usePosts();
-  const myFollowingQuery = useQuery({
-    queryKey: ["following", currentUserId],
-    queryFn: () => getFollowing(currentUserId as number),
-    enabled: typeof currentUserId === "number"
-  });
-  const followMutation = useMutation({ mutationFn: followUser });
-  const unfollowMutation = useMutation({ mutationFn: unfollowUser });
+  const { followingQuery: myFollowingQuery, followMutation, unfollowMutation } = useConnections(currentUserId);
   const joinMutation = useMutation({ mutationFn: joinCommunity });
 
   const shownUsers: Profile[] = searchResults ? searchResults.users : recUsers.data ?? [];
@@ -163,12 +157,10 @@ export default function ExplorePage() {
               if (isFollowing) {
                 await unfollowMutation.mutateAsync(user.user);
                 setFollowing((prev) => ({ ...prev, [user.user]: false }));
-                await myFollowingQuery.refetch();
                 toast.success("Unfollowed user");
               } else {
                 await followMutation.mutateAsync(user.user);
                 setFollowing((prev) => ({ ...prev, [user.user]: true }));
-                await myFollowingQuery.refetch();
                 toast.success("Now following user");
               }
             } catch (error) {
