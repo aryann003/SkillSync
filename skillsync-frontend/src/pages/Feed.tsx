@@ -211,17 +211,20 @@ export default function FeedPage() {
         activityFeedQuery.isLoading ? <Skeleton className="h-20" /> : activityFeedQuery.isError ? <p>Could not load activity feed.</p> : (
           <div className="space-y-4">
             <Card>
-              <h3 className="mb-2 text-lg font-semibold">From followed users</h3>
-              {(activityFeedQuery.data?.posts_from_followed_users?.length ?? 0) === 0 ? <p className="text-sm text-slate-500">No posts yet.</p> : activityFeedQuery.data?.posts_from_followed_users.map((post) => (
-                <PostCard key={`activity-followed-${post.id}`} post={post} mine={currentUser?.user === post.user} liked={Boolean(post.is_liked)} saved={Boolean(savedPosts[post.id])} likesCount={post.likes_count ?? 0} onLike={async () => {
-                  const previousSaved = Boolean(savedPosts[post.id]);
-                  const previousLike = Boolean(post.is_liked);
+              <h3 className="mb-2 text-lg font-semibold">From you and followed users</h3>
+              {(activityFeedQuery.data?.personal_posts?.length ?? 0) === 0 ? <p className="text-sm text-slate-500">No posts yet.</p> : activityFeedQuery.data?.personal_posts.map((post) => (
+                <PostCard key={`activity-followed-${post.id}`} post={post} mine={currentUser?.user === post.user} liked={likedPosts[post.id] ?? Boolean(post.is_liked)} saved={Boolean(savedPosts[post.id])} likesCount={likeCounts[post.id] ?? post.likes_count ?? 0} onLike={async () => {
+                  const previousLike = likedPosts[post.id] ?? Boolean(post.is_liked);
+                  const previousCount = likeCounts[post.id] ?? post.likes_count ?? 0;
+                  setLikedPosts((prev) => ({ ...prev, [post.id]: !previousLike }));
+                  setLikeCounts((prev) => ({ ...prev, [post.id]: Math.max(0, previousCount + (previousLike ? -1 : 1)) }));
                   try {
                     await likeMutation.mutateAsync({ id: post.id, liked: previousLike });
                   } catch {
+                    setLikedPosts((prev) => ({ ...prev, [post.id]: previousLike }));
+                    setLikeCounts((prev) => ({ ...prev, [post.id]: previousCount }));
                     toast.error("Could not update like");
                   }
-                  setSavedPosts((prev) => ({ ...prev, [post.id]: previousSaved }));
                 }} onSave={async () => {
                   const previousSaved = Boolean(savedPosts[post.id]);
                   setSavedPosts((prev) => ({ ...prev, [post.id]: !previousSaved }));

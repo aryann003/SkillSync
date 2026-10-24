@@ -27,11 +27,11 @@ export default function SavedPostsPage() {
             key={saved.id}
             post={post}
             mine={false}
-            liked={Boolean(likedPosts[post.id])}
+            liked={likedPosts[post.id] ?? Boolean(post.is_liked)}
             saved={Boolean(isSaved)}
             likesCount={likeCounts[post.id] ?? post.likes_count ?? 0}
             onLike={async () => {
-              const previousLike = Boolean(likedPosts[post.id]);
+              const previousLike = likedPosts[post.id] ?? Boolean(post.is_liked);
               const previousCount = likeCounts[post.id] ?? post.likes_count ?? 0;
               setLikedPosts((prev) => ({ ...prev, [post.id]: !previousLike }));
               setLikeCounts((prev) => ({ ...prev, [post.id]: Math.max(0, previousCount + (previousLike ? -1 : 1)) }));

@@ -9,15 +9,15 @@ export const useConnections = (id?: number) => {
   const followMutation = useMutation({
     mutationFn: followUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["followers", id] });
-      queryClient.invalidateQueries({ queryKey: ["following", id] });
+      queryClient.invalidateQueries({ queryKey: ["followers"] });
+      queryClient.invalidateQueries({ queryKey: ["following"] });
     }
   });
   const unfollowMutation = useMutation({
     mutationFn: unfollowUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["followers", id] });
-      queryClient.invalidateQueries({ queryKey: ["following", id] });
+      queryClient.invalidateQueries({ queryKey: ["followers"] });
+      queryClient.invalidateQueries({ queryKey: ["following"] });
     }
   });
   return { followersQuery, followingQuery, followMutation, unfollowMutation };

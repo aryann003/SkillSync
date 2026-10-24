@@ -10,7 +10,7 @@ export interface PaginatedResponse<T> {
 
 export interface ActivityFeedResponse {
   message: string;
-  posts_from_followed_users: Post[];
+  personal_posts: Post[];
   posts_from_communities: CommunityPost[];
 }
 
