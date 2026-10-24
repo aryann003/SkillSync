@@ -20,7 +20,9 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 #JWT Views
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from users.auth_views import ThrottledTokenObtainPairView
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 
 from django.http import JsonResponse
@@ -41,9 +43,13 @@ urlpatterns = [
     path('api/notifications/',include('notifications.urls')),
 
     #frontend  routes
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', ThrottledTokenObtainPairView.as_view(), name='token_obtain_pair_root'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/reports/', include('reports.urls')),
+
+    # API documentation
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]
 
 if settings.DEBUG:

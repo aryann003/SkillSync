@@ -31,10 +31,16 @@ class PostSerializer(serializers.ModelSerializer):
                             'created_at',
                             'updated_at'
                             ]
+    # Use values annotated by posts.queries.with_post_stats when available;
+    # fall back to a query for single objects (e.g. right after create/update).
     def get_likes_count(self, obj):
+        if hasattr(obj, "likes_total"):
+            return obj.likes_total
         return Like.objects.filter(post=obj).count()
 
     def get_comments_count(self, obj):
+        if hasattr(obj, "comments_total"):
+            return obj.comments_total
         return Comment.objects.filter(post=obj).count()
 
     def validate_image(self, value):
@@ -50,6 +56,8 @@ class PostSerializer(serializers.ModelSerializer):
         user = getattr(request, "user", None)
         if not user or not user.is_authenticated:
             return False
+        if hasattr(obj, "liked_by_me"):
+            return obj.liked_by_me
         return Like.objects.filter(post=obj, user=user).exists()
 
     def get_profile_image(self, obj):

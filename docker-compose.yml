@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: skillsync
+      POSTGRES_USER: skillsync
+      POSTGRES_PASSWORD: skillsync
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skillsync"]
+      interval: 5s
+      retries: 10
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      SECRET_KEY: dev-only-change-me
+      DEBUG: "True"
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_URL: postgres://skillsync:skillsync@db:5432/skillsync
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

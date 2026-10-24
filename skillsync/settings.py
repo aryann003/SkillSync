@@ -60,6 +60,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework_simplejwt',
+    'drf_spectacular',
     'corsheaders',
     'users',
     'posts',
@@ -171,6 +172,23 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE':6,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '2000/hour',
+        'login': '10/min',
+    },
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'SkillSync API',
+    'DESCRIPTION': 'Social learning platform: profiles, posts, follows, communities, notifications, moderation.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
 }
 
 CORS_ALLOW_ALL_ORIGINS = os.environ.get(

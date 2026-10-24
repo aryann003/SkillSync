@@ -16,8 +16,8 @@ class Community(models.Model):
 class CommunityMember(models.Model):
 
     user = models.ForeignKey(User,
-                             on_delete=models.CASCADE
-                             )
+                        on_delete=models.CASCADE
+                        )
     
     community = models.ForeignKey(
         Community,
@@ -27,18 +27,14 @@ class CommunityMember(models.Model):
 
     joined_at = models.DateTimeField(auto_now_add=True)
 
-
     class Meta:
         unique_together = ['user', 'community']
 
     def __str__(self):
         return f"{self.user.username} joined {self.community.name}"
     
-
-
 class CommunityPost(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
-
     community = models.ForeignKey(Community,
                                   on_delete=models.CASCADE,
                                   related_name='posts'

@@ -10,3 +10,8 @@ staticfiles/
 media/
 .DS_Store
 Thumbs.db
+
+# Test artifacts
+.coverage
+.pytest_cache/
+htmlcov/

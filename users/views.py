@@ -115,7 +115,7 @@ def search_users(request):
         Q(interests__icontains=query) |
         Q(profession__icontains=query) |
         Q(skills__icontains=query)
-    ).exclude(user=request.user).distinct()
+    ).exclude(user=request.user).distinct().order_by('id')
 
     paginator = PageNumberPagination()
     paginator.page_size = 6
@@ -155,7 +155,7 @@ def recommended_users(request):
     for term in profession_terms:
         query |= Q(profession__icontains=term)
 
-    recommended = Profile.objects.filter(query).exclude(user=request.user).distinct()
+    recommended = Profile.objects.filter(query).exclude(user=request.user).distinct().order_by('id')
 
     paginator = PageNumberPagination()
     paginator.page_size = 6

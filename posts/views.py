@@ -13,6 +13,7 @@ from communities.serializers import CommunityPostSerializer
 from notifications.models import Notification
 
 from .models import Post, Like, Comment, SavedPost
+from .queries import with_post_stats
 from .serializers import (
     PostSerializer,
     LikeSerializer,
@@ -61,7 +62,7 @@ def create_post(request):
 @permission_classes([IsAuthenticated])
 def all_posts(request):
 
-    posts = Post.objects.all().order_by('-created_at')
+    posts = with_post_stats(Post.objects.all(), request.user).order_by('-created_at')
 
     paginator = PageNumberPagination()
     paginator.page_size = 6
@@ -81,8 +82,8 @@ def all_posts(request):
 @permission_classes([IsAuthenticated])
 def my_posts(request):
 
-    posts = Post.objects.filter(
-        user=request.user
+    posts = with_post_stats(
+        Post.objects.filter(user=request.user), request.user
     ).order_by('-created_at')
 
     paginator = PageNumberPagination()
@@ -359,11 +360,12 @@ def saved_posts(request):
 
     saved = SavedPost.objects.filter(
         user=request.user
-    ).order_by('-created_at')
+    ).select_related('post__user__profile').order_by('-created_at')
 
     serializer = SavedPostSerializer(
         saved,
-        many=True
+        many=True,
+        context={"request": request}
     )
 
     return Response(serializer.data)
@@ -377,9 +379,12 @@ def activity_feed(request):
         follower=request.user
     ).values_list('following_id', flat=True)
 
-    posts = Post.objects.filter(
-        Q(user=request.user) |
-        Q(user__id__in=followed_user_ids)
+    posts = with_post_stats(
+        Post.objects.filter(
+            Q(user=request.user) |
+            Q(user__id__in=followed_user_ids)
+        ),
+        request.user,
     ).order_by('-created_at')
 
     joined_community_ids = CommunityMember.objects.filter(
@@ -475,12 +480,11 @@ def delete_comment(request,id):
 
 def trending_posts(request):
 #annotate means add temporary fields to the queryset based on some calculations. Here we are adding total_likes and total_comments fields to each post in the queryset, which count the number of likes and comments for each post respectively. Then we order the posts based on these annotated fields, prioritizing posts with more likes and comments.
-    posts = Post.objects.annotate(
-        total_likes = Count('like'),
-        total_comments = Count('comment')
-    ).order_by(
-        '-total_likes',
-        '-total_comments',
+    # Subquery-based counts: joining likes and comments in one Count() would
+    # multiply the two (a post with 3 likes and 3 comments would score 9 each).
+    posts = with_post_stats(Post.objects.all(), request.user).order_by(
+        '-likes_total',
+        '-comments_total',
         '-created_at'
     )
 
